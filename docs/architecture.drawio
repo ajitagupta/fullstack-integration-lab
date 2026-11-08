@@ -1,0 +1,90 @@
+<mxfile host="app.diagrams.net">
+  <diagram id="arch00" name="Architecture — milestone 00">
+    <mxGraphModel dx="1200" dy="700" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="620" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <mxCell id="title" value="&lt;b&gt;Full-Stack Integration Lab — current architecture (milestone 00)&lt;/b&gt;" style="text;html=1;align=left;verticalAlign=middle;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry x="40" y="20" width="700" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="legend" value="Solid = works today · Dashed = planned in this lab" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="40" y="48" width="500" height="20" as="geometry"/>
+        </mxCell>
+
+        <!-- Browser -->
+        <mxCell id="browser" value="&lt;b&gt;Browser&lt;/b&gt;&lt;br&gt;React + TypeScript · Vite :5173" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;arcSize=4;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="40" y="90" width="260" height="300" as="geometry"/>
+        </mxCell>
+        <mxCell id="b1" value="Routing pages&lt;br&gt;Home · Workouts · Details" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="150" width="220" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="b2" value="WorkoutCard" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="220" width="220" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="b3" value="Local sample data&lt;br&gt;&lt;i&gt;(replaced by API layer, milestone 03)&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;dashed=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="280" width="220" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- Flask API -->
+        <mxCell id="api" value="&lt;b&gt;Flask API&lt;/b&gt;&lt;br&gt;Python · :5000" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;arcSize=4;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="420" y="90" width="300" height="300" as="geometry"/>
+        </mxCell>
+        <mxCell id="a1" value="Routes&lt;br&gt;/workouts · /workouts/&amp;lt;id&amp;gt; · /upload · /parse" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="440" y="150" width="260" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="a2" value="Validation&lt;br&gt;create_workout() + validate_data()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="440" y="210" width="260" height="45" as="geometry"/>
+        </mxCell>
+        <mxCell id="a3" value="cache.py&lt;br&gt;in-memory" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="440" y="265" width="125" height="45" as="geometry"/>
+        </mxCell>
+        <mxCell id="a4" value="parse_line()&lt;br&gt;regex parser" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="575" y="265" width="125" height="45" as="geometry"/>
+        </mxCell>
+        <mxCell id="a5" value="APScheduler&lt;br&gt;summary job" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="440" y="320" width="260" height="45" as="geometry"/>
+        </mxCell>
+
+        <!-- Persistence -->
+        <mxCell id="db" value="&lt;b&gt;db.py&lt;/b&gt;&lt;br&gt;persistence layer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="800" y="200" width="140" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="sqlite" value="&lt;b&gt;SQLite file&lt;/b&gt;&lt;br&gt;current" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=12;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1010" y="110" width="140" height="90" as="geometry"/>
+        </mxCell>
+        <mxCell id="pg" value="&lt;b&gt;PostgreSQL 18&lt;/b&gt;&lt;br&gt;target · milestone 01" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=12;fillColor=#ffffff;strokeColor=#d79b00;dashed=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1010" y="270" width="140" height="90" as="geometry"/>
+        </mxCell>
+
+        <!-- Clients / tests -->
+        <mxCell id="feTests" value="Vitest (1) + Playwright (2)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="450" width="220" height="45" as="geometry"/>
+        </mxCell>
+        <mxCell id="beClients" value="curl · pytest test client (10 tests)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="450" y="450" width="240" height="45" as="geometry"/>
+        </mxCell>
+
+        <!-- Edges -->
+        <mxCell id="e1" value="HTTP / JSON&lt;br&gt;&lt;i&gt;not connected yet (milestones 03–04)&lt;/i&gt;" style="endArrow=classic;html=1;dashed=1;strokeColor=#6c8ebf;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="browser" target="api">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e2" value="" style="endArrow=classic;html=1;strokeColor=#82b366;" edge="1" parent="1" source="api" target="db">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e3" value="SQL" style="endArrow=classic;html=1;strokeColor=#d79b00;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="db" target="sqlite">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e4" value="migration" style="endArrow=classic;html=1;dashed=1;strokeColor=#d79b00;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="db" target="pg">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e5" value="HTTP" style="endArrow=classic;html=1;strokeColor=#666666;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="beClients" target="api">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e6" value="" style="endArrow=classic;html=1;strokeColor=#666666;" edge="1" parent="1" source="feTests" target="browser">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
