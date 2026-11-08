@@ -88,6 +88,7 @@ As a user I want to understand loading, empty, success and failure states, so th
 - `/workouts/parse` parses and saves in one step; there is no preview. Split in milestone 08.
 - CSV rows with non-numeric values (e.g. `run,abc,30`) crash `clean_row()`: the API returns `500` instead of a row error.
 - An empty `POST /workouts/parse` request returns `201` with `{"inserted": 0}` instead of a `400`.
+- `requirements.txt` contained unrelated packages (Django, PyPDF2) from a shared environment; trimmed in milestone 01.
 
 ### Data
 - SQLite stores durations as floats: `30` comes back as `30.0`.
