@@ -9,6 +9,11 @@ services:
       - db-data:/var/lib/postgresql
     ports:
       - "5433:5432"                             # laptop port : container port
+    healthcheck: 
+      test: ["CMD-SHELL", "pg_isready -U workouts_app -d workouts"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   api:
     build: ./backend                             # the folder with your Dockerfile
@@ -17,7 +22,21 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg://workouts_app:${POSTGRES_PASSWORD}@db:5432/workouts
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+
+  web:
+    build: ./frontend
+    environment:
+      VITE_USE_POLLING: "true"
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app          # bind mount: your code, live
+      - /app/node_modules        # keep the container's own node_modules
+    depends_on:
+      - api
 
 volumes:
   db-data:
+

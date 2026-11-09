@@ -4,4 +4,10 @@ import { defineConfig } from 'vite'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  server: {
+    watch: {
+      usePolling: process.env.VITE_USE_POLLING === 'true',
+      interval: 300,
+    },
+  },
 })
