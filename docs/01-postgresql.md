@@ -63,6 +63,27 @@ The column types already define which input the database accepts, so "must be a 
 ## Test database
 Tests run against a separate database (`workouts_test`, from `TEST_DATABASE_URL`). `conftest.py` switches `DATABASE_URL` before `db.py` is imported, and an autouse fixture empties the table (`TRUNCATE … RESTART IDENTITY`) before every test. Proof: the development database had 104 rows before and after a full test run.
 
+**Local setup (once):**
+```sql
+-- psql -U postgres
+CREATE ROLE workouts_app WITH LOGIN PASSWORD 'your-password';
+CREATE DATABASE workouts OWNER workouts_app;
+CREATE DATABASE workouts_test OWNER workouts_app;
+```
+Copy `backend/.env.example` to `backend/.env` and fill in the password. Then create the schema in both databases and run the tests:
+```powershell
+cd backend
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+$env:DATABASE_URL = "postgresql+psycopg://workouts_app:your-password@localhost:5432/workouts_test"   # point at the TEST database
+alembic upgrade head                      # → creates the schema in workouts_test
+Remove-Item Env:DATABASE_URL              # remove the override
+alembic upgrade head                      # → DATABASE_URL now comes from backend/.env
+                                          #   → creates the schema in workouts
+pytest
+```
+
 ## Sample data
 `python seed.py` empties the development table and inserts 40 sample workouts in one transaction. `random.seed(42)` makes the data identical on every run.
 
@@ -73,3 +94,5 @@ alembic upgrade head
 python seed.py
 ```
 This drops the table, recreates it with all constraints from the migration, and refills it.
+
+Run from `backend/` with the venv active (local PostgreSQL). With Docker, prefix each command with `docker compose exec api`, e.g. `docker compose exec api alembic downgrade base`.
