@@ -26,12 +26,15 @@ The Flask API and PostgreSQL run as two containers, defined in `docker-compose.y
 | `backend/.dockerignore` | Keeps `.venv`, `.env`, `__pycache__`, `.pytest_cache` out of the image |
 | `docker-compose.yml` | Defines the `api` and `db` services, ports and the `db-data` volume |
 | `.env` (repo root, not committed) | `POSTGRES_PASSWORD` for Compose |
+| `frontend/Dockerfile` | Vite dev server in Node 24-slim, listening on `0.0.0.0` |
+| `frontend/.dockerignore` | Keeps the Windows `node_modules`, `dist` and test output out of the image |
 
 ## Services
 | Service | Image | Published port (laptop) | Internal port | Notes |
 |---|---|---|---|---|
 | `api` | built from `./backend` | 5000 | 5000 | `DATABASE_URL` points to `db:5432` |
 | `db` | `postgres:18` | 5433 | 5432 | 5433 because the local PostgreSQL uses 5432; data in volume `db-data` |
+| `web` | built from `./frontend` | 5173 | 5173 | Bind mount `./frontend:/app` for live reload; `/app/node_modules` keeps the container's own packages |
 
 ## Key concepts
 - **Image vs. container:** the image is the blueprint built from the `Dockerfile`; a container is a running instance of it. Containers are replaced often; images are rebuilt when code changes.
@@ -58,7 +61,9 @@ Run from the repo root.
 - Compose reads `.env` from the folder of `docker-compose.yml`; a missing variable becomes an empty string with only a warning.
 - `depends_on` waits for the database **container** to start, not for PostgreSQL to be **ready** (the API started ~40 log lines before the database was ready).
 - The APScheduler job does not run in the container: it starts only with Flask's debug reloader (`WERKZEUG_RUN_MAIN`). To be revisited in milestone 11.
+- **Health check:** `pg_isready` runs every 5 s; the API waits for `condition: service_healthy`, so it never starts before PostgreSQL accepts connections.
+- **Live reload on Windows:** file-change notifications from Windows folders don't reach Linux containers. Vite uses polling inside Docker only (`VITE_USE_POLLING=true` in Compose, read in `vite.config.ts`).
+- **Bind mount vs. image copy:** the bind mount overrides the code copied into the image, so edits appear without rebuilding; `node_modules` is excluded from the mount so the container keeps its Linux packages.
 
 ## Open
-- **Session 3:** frontend container; health check so the API waits until the database is ready.
 - **Session 4:** `.env.example` for the root; fresh-clone test; prove data survives container replacement.
