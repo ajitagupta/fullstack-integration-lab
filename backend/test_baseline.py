@@ -77,3 +77,13 @@ def test_workout_parser(client):
 def test_parse_line_extracts_fields():
     result = parse_line("ran 5 km in 30 min")
     assert result == {"sport": "run", "distance_km": 5.0, "duration_min": 30}
+
+def test_fractional_duration_returns_400(client):
+    response = client.post("/workouts", json={"sport": "run", "distance_km": 5, "duration_min": 30.5})
+    assert response.status_code == 400
+    assert "duration_min" in response.get_json()["error"]
+
+def test_whole_float_duration_is_accepted(client):
+    response = client.post("/workouts", json={"sport": "run", "distance_km": 5, "duration_min": 30.0})
+    assert response.status_code == 200
+    assert response.get_json()["duration_min"] == 30

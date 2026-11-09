@@ -85,6 +85,9 @@ def create_workout():
     if optional_distance is not None and not isinstance(optional_distance, (int, float)):
         return jsonify({"error": "The key distance_km must be a number."}), 400
 
+    if isinstance(optional_duration, float) and not optional_duration.is_integer():
+        return jsonify({"error": "The key duration_min must be a whole number."}), 400
+
     if optional_duration is not None and optional_duration < 0:
         return jsonify({"error": "The key duration_min must be a positive number or 0."}), 400
     if optional_distance is not None and optional_distance < 0:
@@ -173,8 +176,10 @@ def validate_data(data):
         return "The key distance_km is invalid. Must not be negative."
     if duration_min is not None and duration_min < 0:
         return "The key duration_min is invalid. Must not be negative."
+    if isinstance(duration_min, float) and not duration_min.is_integer():
+        return "The key duration_min must be a whole number."
     if duration_min is None and sport in ["run", "swim", "cycle", "badminton", "strength"]:
-        return "The key duration_min is missing."
+        return "The key duration_min is missing."    
     if distance_km is None and sport in ["run", "swim", "cycle"]:
         return "The key distance_km is missing."
 
