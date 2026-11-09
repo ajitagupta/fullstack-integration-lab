@@ -7,9 +7,6 @@ import re
 
 app = Flask(__name__)
 
-db.init_db()
-
-
 def scheduled_job():
     count = db.count_workouts(None, None, None)
     workouts = db.search_workouts(None, None, None, 1000000, 0)

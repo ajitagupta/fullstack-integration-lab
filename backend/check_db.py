@@ -10,3 +10,5 @@ engine = create_engine(url)                 # create the engine from url
 with engine.connect() as conn:              # opens a connection, closes it automatically
     result = conn.execute(text("SELECT version();"))# your SELECT version() query
     print(result.scalar())                  # result.scalar() gives the single value
+
+    

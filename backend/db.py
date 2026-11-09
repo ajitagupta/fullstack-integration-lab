@@ -1,87 +1,49 @@
-import sqlite3
+import os
+from dotenv import load_dotenv
+from sqlalchemy import create_engine, select, func
+from sqlalchemy.orm import sessionmaker
+from models import Workout
 
-from flask import request
+load_dotenv()
+engine = create_engine(os.environ["DATABASE_URL"])            # from DATABASE_URL, as in check_db.py
+SessionLocal = sessionmaker(engine)    # a factory: SessionLocal() gives you a new session
 
-
-def get_connection():
-    con = sqlite3.connect("workouts.db")
-    con.row_factory = sqlite3.Row   # rows accessible by column name, not position
-    return con
-
-def init_db():
-    con = get_connection()
-    cur = con.cursor()
-    cur.execute("CREATE TABLE IF NOT EXISTS workouts(id INTEGER PRIMARY KEY, sport TEXT, distance_km REAL, duration_min REAL)")
-    con.commit()
-    con.close()
+def to_dict(workout):
+    return {"id": workout.id, "sport": workout.sport, "distance_km": workout.distance_km, "duration_min": workout.duration_min}                      # id, sport, distance_km, duration_min from the object
 
 def add_workout(data):
-    con = get_connection()
-    cur = con.cursor()
-    cur.execute(
-        "INSERT INTO workouts (sport, distance_km, duration_min) VALUES (?, ?, ?)",
-        (data["sport"], data.get("distance_km"), data.get("duration_min"))
-    )
-    con.commit()
-    new_id = cur.lastrowid
-    con.close()
-    return {"id": new_id, **data}
+    with SessionLocal() as session:
+        workout = Workout(sport=data["sport"], duration_min=data.get("duration_min"), distance_km=data.get("distance_km"))         # from data; distance and duration may be missing
+        session.add(workout)
+        session.commit()
+        return to_dict(workout)        # the stored row, not the input
 
 def get_workout_by_id(workout_id):
-    con = get_connection()
-    cur = con.cursor()
-    cur.execute("SELECT * FROM workouts WHERE id = ?", (workout_id,))
-    row = cur.fetchone()
-    con.close()
-    return dict(row) if row else None
+    with SessionLocal() as session:
+        workout = session.get(Workout, workout_id)           # look up by primary key
+        if workout is None:
+            return None
+        return to_dict(workout)                              # a dict, or None if not found
+
+def build_conditions(sport, min_distance, min_duration):
+    conditions = []
+    if sport is not None:
+        conditions.append(Workout.sport == sport)
+    if min_distance is not None:
+        conditions.append(Workout.distance_km >= min_distance)
+    if min_duration is not None:
+        conditions.append(Workout.duration_min >= min_duration)
+    return conditions
 
 def search_workouts(sport, min_distance, min_duration, limit, offset):
-    conditions = []
-    values = []
-
-    if sport is not None:
-        conditions.append("sport = ?")
-        values.append(sport)
-    if min_distance is not None:
-        conditions.append("distance_km >= ?")
-        values.append(min_distance)
-    if min_duration is not None:
-        conditions.append("duration_min >= ?")
-        values.append(min_duration)
-
-    con = get_connection()
-    cur = con.cursor()
-    query = "SELECT * FROM workouts"
-    if conditions:
-        query += " WHERE " + " AND ".join(conditions)
-    query +=  " ORDER BY id LIMIT ? OFFSET ?"
-
-    cur.execute(query, tuple(values) + (limit, offset))
-    rows = cur.fetchall()
-    con.close()
-    return [dict(r) for r in rows]
+    conditions = build_conditions(sport, min_distance, min_duration)
+    stmt = select(Workout).where(*conditions).order_by(Workout.id).limit(limit).offset(offset)
+    with SessionLocal() as session:
+        workouts = session.scalars(stmt).all()
+        return [to_dict(w) for w in workouts]              # a list of dicts, using to_dict()
 
 def count_workouts(sport, min_distance, min_duration):
-    conditions = []
-    values = []
-
-    if sport is not None:
-        conditions.append("sport = ?")
-        values.append(sport)
-    if min_distance is not None:
-        conditions.append("distance_km >= ?")
-        values.append(min_distance)
-    if min_duration is not None:
-        conditions.append("duration_min >= ?")
-        values.append(min_duration)
-
-    con = get_connection()
-    cur = con.cursor()
-    query = "SELECT COUNT(*) FROM workouts"
-    if conditions:
-        query += " WHERE " + " AND ".join(conditions)
-
-    cur.execute(query, tuple(values))
-    row = cur.fetchone()
-    con.close()
-    return row[0]
+    conditions = build_conditions(sport, min_distance, min_duration)
+    stmt = select(func.count()).select_from(Workout).where(*conditions)
+    with SessionLocal() as session:
+        return session.scalar(stmt)
