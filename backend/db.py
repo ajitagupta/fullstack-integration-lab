@@ -47,3 +47,13 @@ def count_workouts(sport, min_distance, min_duration):
     stmt = select(func.count()).select_from(Workout).where(*conditions)
     with SessionLocal() as session:
         return session.scalar(stmt)
+
+def add_workouts(workouts):
+    # one transaction: commits at the end, rolls back on any error
+    with SessionLocal.begin() as session:
+        for data in workouts:
+            workout = Workout(sport=data["sport"], duration_min=data.get("duration_min"), distance_km=data.get("distance_km"))         # from data; distance and duration may be missing
+            session.add(workout)
+
+    return len(workouts)             # an exception inside the block → ROLLBACK, nothing saved
+        

@@ -134,12 +134,12 @@ def parse_workout_line():
     if errors:
         return jsonify({"errors": errors}), 400   # all-or-nothing
 
-    for workout in cleaned:
-        db.add_workout(workout)
+    count = db.add_workouts(cleaned)
+
 
     cache.clear()                          # it's a write — invalidate
 
-    return jsonify({"inserted": len(cleaned)}), 201
+    return jsonify({"inserted": count}), 201
 
 
 @app.get('/workouts/<int:workout_id>')
@@ -212,12 +212,11 @@ def upload_workout():
     if errors:
         return jsonify({"errors": errors}), 400  # something failed -> insert nothing
 
-    for workout in cleaned:
-        db.add_workout(workout)
+    count = db.add_workouts(cleaned)
 
     cache.clear()          # data changed — stale reads must go
 
-    return jsonify({"inserted": len(cleaned)}), 201
+    return jsonify({"inserted": count}), 201
 
 if __name__ == "__main__":
     app.run(debug=True)

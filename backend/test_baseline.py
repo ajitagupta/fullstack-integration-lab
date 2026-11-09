@@ -3,6 +3,8 @@ from app import app
 import cache
 import io
 from app import parse_line
+import db
+from sqlalchemy.exc import IntegrityError
 
 @pytest.fixture
 def client():
@@ -87,3 +89,10 @@ def test_whole_float_duration_is_accepted(client):
     response = client.post("/workouts", json={"sport": "run", "distance_km": 5, "duration_min": 30.0})
     assert response.status_code == 200
     assert response.get_json()["duration_min"] == 30
+
+def test_failed_batch_rolls_back_completely():
+    before = db.count_workouts(None, None, None)
+    with pytest.raises(IntegrityError):
+        db.add_workouts([{"sport": "run", "distance_km": 5, "duration_min": 30.0}, {"sport": "rest"}, {"sport": "swim", "duration_min": 30.0}])
+    after = db.count_workouts(None, None, None)      # outside the block
+    assert after == before                           # the proof: nothing was saved        
