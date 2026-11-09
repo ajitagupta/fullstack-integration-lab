@@ -1,0 +1,23 @@
+services:
+  db:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: workouts_app
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: workouts                     # the database name
+    volumes:
+      - db-data:/var/lib/postgresql
+    ports:
+      - "5433:5432"                             # laptop port : container port
+
+  api:
+    build: ./backend                             # the folder with your Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      DATABASE_URL: postgresql+psycopg://workouts_app:${POSTGRES_PASSWORD}@db:5432/workouts
+    depends_on:
+      - db
+
+volumes:
+  db-data:
