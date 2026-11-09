@@ -33,3 +33,7 @@ docker compose exec api python seed.py
 
 ### Running the backend tests
 Tests run on the host against a separate local PostgreSQL database (`workouts_test`), never against the Docker data. Setup: see [docs/01-postgresql.md](docs/01-postgresql.md).
+
+Requirements: Python 3.14 and PostgreSQL 18 installed locally ([postgresql.org/download](https://www.postgresql.org/download/)), with its `bin` folder on your `PATH` so `psql` works. The local server uses port 5432; the Docker database uses 5433, so both can run side by side.
+
+Setup: see [docs/01-postgresql.md](docs/01-postgresql.md).

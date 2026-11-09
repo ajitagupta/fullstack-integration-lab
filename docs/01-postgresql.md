@@ -64,6 +64,8 @@ The column types already define which input the database accepts, so "must be a 
 Tests run against a separate database (`workouts_test`, from `TEST_DATABASE_URL`). `conftest.py` switches `DATABASE_URL` before `db.py` is imported, and an autouse fixture empties the table (`TRUNCATE … RESTART IDENTITY`) before every test. Proof: the development database had 104 rows before and after a full test run.
 
 **Local setup (once):**
+Install PostgreSQL 18 from [postgresql.org/download](https://www.postgresql.org/download/) (Stack Builder is not needed) and add `C:\Program Files\PostgreSQL\18\bin` to your user `PATH`.
+
 ```sql
 -- psql -U postgres
 CREATE ROLE workouts_app WITH LOGIN PASSWORD 'your-password';
