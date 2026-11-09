@@ -60,7 +60,16 @@ The column types already define which input the database accepts, so "must be a 
 ## Tests
 14 tests pass against PostgreSQL: 3 caching tests, 8 baseline tests, 2 whole-minute tests, 1 rollback test.
 
-## Open (session 5)
-- Repeatable sample-data generation (seed script).
-- Separate test database (`workouts_test`): tests currently write into the development database.
-- Recreate the database from migrations and seed data.
+## Test database
+Tests run against a separate database (`workouts_test`, from `TEST_DATABASE_URL`). `conftest.py` switches `DATABASE_URL` before `db.py` is imported, and an autouse fixture empties the table (`TRUNCATE … RESTART IDENTITY`) before every test. Proof: the development database had 104 rows before and after a full test run.
+
+## Sample data
+`python seed.py` empties the development table and inserts 40 sample workouts in one transaction. `random.seed(42)` makes the data identical on every run.
+
+## Rebuild from scratch
+```powershell
+alembic downgrade base
+alembic upgrade head
+python seed.py
+```
+This drops the table, recreates it with all constraints from the migration, and refills it.
