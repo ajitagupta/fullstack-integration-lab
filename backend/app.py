@@ -7,6 +7,9 @@ import re
 
 app = Flask(__name__)
 
+def error_response(errors, status=400):
+    return jsonify({"errors": errors}), status
+
 def scheduled_job():
     count = db.count_workouts(None, None, None)
     workouts = db.search_workouts(None, None, None, 1000000, 0)
@@ -64,38 +67,38 @@ def get_workouts():
 def create_workout():
     data = request.get_json(silent=True)
     if data is None:
-        return jsonify({"error": "Invalid request body or empty body. Must be JSON."}), 400
+        return error_response([{"error": "Invalid request body or empty body. Must be JSON."}])
     if data.get("sport") is None or data.get("sport") == "":
-        return jsonify({"error": "The key sport is missing or empty. Must be swim, run, badminton, cycle, strength, or rest."}), 400
+        return error_response([{"field": "sport", "error": "The key sport is missing or empty. Must be swim, run, badminton, cycle, strength, or rest."}])
 
     allowed_sports = ["swim", "run", "badminton", "cycle", "strength", "rest"]
     sport = data["sport"]
     if sport not in allowed_sports:
-        return jsonify({"error": "The key sport is invalid. Must be swim, run, badminton, cycle, strength, or rest."}), 400
+        return error_response([{"field": "sport", "error": "The key sport is invalid. Must be swim, run, badminton, cycle, strength, or rest."}])
 
     optional_distance = data.get("distance_km")
     optional_duration = data.get("duration_min")
     if optional_duration is None and (sport in ["run", "swim", "cycle", "badminton", "strength"]):
-        return jsonify({"error": "The key duration_min is missing."}), 400
+        return error_response([{"field": "duration_min", "error": "The key duration_min is missing."}])
     if optional_distance is None and (sport in ["run", "swim", "cycle"]):
-        return jsonify({"error": "The key distance_km is missing."}), 400
+        return error_response([{"field": "distance_km", "error": "The key distance_km is missing."}])
 
     if optional_duration is not None and not isinstance(optional_duration, (int, float)):
-        return jsonify({"error": "The key duration_min must be a number."}), 400
+        return error_response([{"field": "duration_min", "error": "The key duration_min must be a number."}])
     if optional_distance is not None and not isinstance(optional_distance, (int, float)):
-        return jsonify({"error": "The key distance_km must be a number."}), 400
+        return error_response([{"field": "distance_km", "error": "The key distance_km must be a number."}])
 
     if isinstance(optional_duration, float) and not optional_duration.is_integer():
-        return jsonify({"error": "The key duration_min must be a whole number."}), 400
+        return error_response([{"field": "duration_min", "error": "The key duration_min must be a whole number."}])
 
     if optional_duration is not None and optional_duration < 0:
-        return jsonify({"error": "The key duration_min must be a positive number or 0."}), 400
+        return error_response([{"field": "duration_min", "error": "The key duration_min must be a positive number or 0."}])
     if optional_distance is not None and optional_distance < 0:
-        return jsonify({"error": "The key distance_km must be a positive number or 0."}), 400
+        return error_response([{"field": "distance_km", "error": "The key distance_km must be a positive number or 0."}])
 
     cache.clear()          # data changed — stale reads must go
 
-    return jsonify(db.add_workout(data))
+    return jsonify(db.add_workout(data)), 201
 
 def parse_line(text):
     distance_match = re.search(r"(\d+\.?\d*)\s*km", text, re.IGNORECASE)
@@ -127,12 +130,12 @@ def parse_workout_line():
         workout = parse_line(line)        # NEW: parse the text line
         error = validate_data(workout)    # REUSE: validate it
         if error is not None:
-            errors.append(f"Line {i}: {error}")
+            errors.append({"row": i, **error})
         else:
             cleaned.append(workout)
 
     if errors:
-        return jsonify({"errors": errors}), 400   # all-or-nothing
+        return error_response(errors)   # all-or-nothing
 
     count = db.add_workouts(cleaned)
 
@@ -171,17 +174,17 @@ def validate_data(data):
 
     allowed_sports = ["swim", "run", "badminton", "cycle", "strength", "rest"]
     if sport not in allowed_sports:
-        return "The key sport is invalid. Must be swim, run, badminton, cycle, strength, or rest."
+        return {"field": "sport", "error": "The key sport is invalid. Must be swim, run, badminton, cycle, strength, or rest."}
     if distance_km is not None and distance_km < 0:
-        return "The key distance_km is invalid. Must not be negative."
+        return {"field": "distance_km", "error": "The key distance_km is invalid. Must not be negative."}
     if duration_min is not None and duration_min < 0:
-        return "The key duration_min is invalid. Must not be negative."
+        return {"field": "duration_min", "error": "The key duration_min is invalid. Must not be negative."}
     if isinstance(duration_min, float) and not duration_min.is_integer():
-        return "The key duration_min must be a whole number."
+        return {"field": "duration_min", "error": "The key duration_min must be a whole number."}
     if duration_min is None and sport in ["run", "swim", "cycle", "badminton", "strength"]:
-        return "The key duration_min is missing."    
+        return {"field": "duration_min", "error": "The key duration_min is missing."}
     if distance_km is None and sport in ["run", "swim", "cycle"]:
-        return "The key distance_km is missing."
+        return {"field": "distance_km", "error": "The key distance_km is missing."}
 
     return None
 
@@ -191,7 +194,7 @@ def upload_workout():
     file = request.files.get('file')
 
     if file is None:
-        return jsonify({"error": "No file provided."}), 400
+        return error_response([{"field": "file", "error": "No file provided."}])
 
     text = file.read().decode("utf-8")
     reader = csv.DictReader(io.StringIO(text))
@@ -204,13 +207,13 @@ def upload_workout():
         clean = clean_row(raw_row)    # clean this one row
         error = validate_data(clean)  # validate the cleaned row
         if error is not None:
-            errors.append(f"Row {i}: {error}")
+            errors.append({"row": i, **error})
         else:
             cleaned.append(clean)
 
     # all-or-nothing decision, AFTER the loop:
     if errors:
-        return jsonify({"errors": errors}), 400  # something failed -> insert nothing
+        return error_response(errors) # something failed -> insert nothing
 
     count = db.add_workouts(cleaned)
 

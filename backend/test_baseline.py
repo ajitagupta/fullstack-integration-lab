@@ -14,9 +14,9 @@ def client():
 def clear_cache():
     cache.clear()
 
-def test_valid_workout_returns_200(client):
+def test_valid_workout_returns_201(client):
     response = client.post("/workouts", json={"sport": "run", "distance_km": 5, "duration_min": 30})
-    assert response.status_code == 200 # should be 201 — fix deliberately when defining the API contract
+    assert response.status_code == 201 # should be 201 — fix deliberately when defining the API contract
     body = response.get_json()
     assert "id" in body
     assert body["sport"] == "run"
@@ -26,7 +26,9 @@ def test_valid_workout_returns_200(client):
 def test_invalid_workout_returns_400(client):
     response = client.post("/workouts", json={"sport": "run", "duration_min": 30})
     assert response.status_code == 400
-    assert response.get_json()["error"] == "The key distance_km is missing."
+    assert response.get_json()["errors"] == [
+        {"field": "distance_km", "error": "The key distance_km is missing."}
+    ]
 
 def test_filter_by_sport_returns_sport(client):
     client.post("/workouts", json={"sport": "run", "distance_km": 5, "duration_min": 30})
@@ -63,7 +65,8 @@ def test_invalid_row_doesnt_import(client):
     data = {"file": (io.BytesIO(b"sport,distance_km,duration_min\nrun,5,30\nswim,,48\nrest,,"), "workouts.csv")}
     response = client.post("/workouts/upload", data=data, content_type="multipart/form-data")
     assert response.status_code == 400
-    assert response.get_json()["errors"] == ["Row 2: The key distance_km is missing."]
+    assert response.get_json()["errors"] == [
+        {"row": 2, "field": "distance_km", "error": "The key distance_km is missing."}]
     response = client.get("/workouts")
     body = response.get_json()
     assert before == body["total"]
@@ -83,11 +86,12 @@ def test_parse_line_extracts_fields():
 def test_fractional_duration_returns_400(client):
     response = client.post("/workouts", json={"sport": "run", "distance_km": 5, "duration_min": 30.5})
     assert response.status_code == 400
-    assert "duration_min" in response.get_json()["error"]
-
+    errors = response.get_json()["errors"]
+    assert errors[0]["field"] == "duration_min"
+    
 def test_whole_float_duration_is_accepted(client):
     response = client.post("/workouts", json={"sport": "run", "distance_km": 5, "duration_min": 30.0})
-    assert response.status_code == 200
+    assert response.status_code == 201
     assert response.get_json()["duration_min"] == 30
 
 def test_failed_batch_rolls_back_completely():
