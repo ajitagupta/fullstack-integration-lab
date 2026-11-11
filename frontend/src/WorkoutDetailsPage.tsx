@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { getWorkout } from './api/workout-api';
 import type { Workout } from './api/workout-types';
 import { errorMessage } from './api/error-message';
+import { RequestCancelledError } from './api/api-error';
 
 function WorkoutDetailPage() {
   const { id } = useParams();
@@ -10,9 +11,19 @@ function WorkoutDetailPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    getWorkout(Number(id))
+    const controller = new AbortController();
+
+    setWorkout(null);
+    setError(null);
+
+    getWorkout(Number(id), controller.signal)
       .then((workout) => setWorkout(workout))
-      .catch((err) => setError(errorMessage(err)));
+      .catch((err) => {
+        if (err instanceof RequestCancelledError) return;
+        setError(errorMessage(err));
+      });
+
+    return () => controller.abort();
   }, [id]);
 
   return (
@@ -26,6 +37,7 @@ function WorkoutDetailPage() {
           <li>Duration: {workout.duration_min ?? "—"}</li>
         </ul>
       )}
+      {!workout && !error && <p role="status">Loading workout…</p>}
     </>
   );
 }

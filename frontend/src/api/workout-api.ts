@@ -4,13 +4,13 @@ import { parseWorkout, parseWorkoutList, type NewWorkout, type Workout, type Wor
 import { NetworkError } from "./api-error";
 
 
-export async function getWorkouts(): Promise<WorkoutListResponse> {
-  const data = await request(`/workouts`);
+export async function getWorkouts(signal?: AbortSignal): Promise<WorkoutListResponse> {
+  const data = await request(`/workouts`, { signal });
   return parseWorkoutList(data);
 }
 
-export async function getWorkout(id: number): Promise<Workout> {
-  const data = await request(`/workouts/${id}`);              // the URL for one workout
+export async function getWorkout(id: number, signal?: AbortSignal): Promise<Workout> {
+  const data = await request(`/workouts/${id}`, { signal });              // the URL for one workout
   return parseWorkout(data);                               // check it with the right parse function
 }
 
