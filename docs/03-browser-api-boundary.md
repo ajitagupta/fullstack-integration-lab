@@ -25,8 +25,8 @@ The row number moved from the message text (`"Row 2: ..."`) into its own `row` k
 ## Frontend API layer
 | File | Responsibility |
 |---|---|
-| `client.ts` | `request()`: builds the URL from `VITE_API_URL`, calls `fetch`, turns failed responses into `ApiError` |
-| `api-error.ts` | `ApiError` (server answered with an error: status + `errors` list) and `InvalidResponseError` (server sent data of the wrong shape) |
+| `client.ts` | `request()`: builds the URL from `VITE_API_URL`, calls `fetch` with a 10 s timeout, and turns every failure into a named error (`NetworkError`, `ApiError`, `InvalidResponseError`) |
+| `api-error.ts` | `ApiError` (server answered with an error: status + `errors` list), `InvalidResponseError` (server sent invalid JSON or data of the wrong shape) and `NetworkError` (no answer, or too slow) |
 | `workout-types.ts` | Types (`Sport`, `Workout`, `WorkoutListResponse`, `NewWorkout`) and runtime checks (`parseWorkout`, `parseWorkoutList`) |
 | `workout-api.ts` | What components call: `getWorkouts()`, `getWorkout(id)`, `createWorkout(workout)` |
 
@@ -50,6 +50,16 @@ Component ◀── checked WorkoutListResponse ┘
 - **`null` vs. optional:** the API returns `"distance_km": null` (`number | null`); when sending, the field may be left out (`distance_km?: number`).
 - **Literal types vs. values:** `sport: "run"` in a type means *only* `"run"` is allowed; types describe ranges of values, examples belong in tests.
 
+## Failure handling
+| What happened | Error |
+|---|---|
+| No connection | `NetworkError("Can't reach the server.")` |
+| No answer within 10 s (`AbortController` + `setTimeout`) | `NetworkError("Server is taking too long to respond.")` |
+| Server answered `400`/`404`/`500` | `ApiError` with status and `errors` list |
+| Server answered `200`, but invalid JSON or wrong shape | `InvalidResponseError` |
+
+`fetch` throws only when there is no answer at all; HTTP error statuses arrive as normal responses with `ok: false`. Errors are classes (not types) so components can tell them apart with `instanceof` at runtime.
+
 ## Tests
 18 backend tests pass. `test_baseline.py` was updated deliberately for the new contract (`201`, new error format); `test_contract.py` adds four tests: invalid `limit` → `400`, `/workouts/abc` → JSON `404`, unknown id → `404`, non-numeric CSV value → row error.
 
@@ -59,5 +69,4 @@ Component ◀── checked WorkoutListResponse ┘
 - `npx tsc` outside `frontend/` downloaded an unrelated package called `tsc`. Run frontend tools from `frontend/`; in a Vite project, use `npx tsc -b`.
 
 ## Open
-- **Session 3:** timeouts and cancellation (`AbortController`); network failures vs. HTTP errors.
 - **Session 4:** connection-status check; CORS or Vite proxy; components switched to the API layer; test for a malformed response.
