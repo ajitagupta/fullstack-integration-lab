@@ -1,16 +1,9 @@
 import { Link } from 'react-router-dom';
 import { getWorkouts } from './api/workout-api';
 import type { Workout } from './api/workout-types';
-import { ApiError, InvalidResponseError, NetworkError } from './api/api-error';
 import { useEffect, useState } from 'react';
 import './App.css'
-
-function errorMessage(err: unknown): string {
-  if (err instanceof NetworkError) return err.message;
-  if (err instanceof ApiError) return err.message;                  // the server's own message
-  if (err instanceof InvalidResponseError) return "The server sent unexpected data.";
-  return "Something went wrong.";
-}
+import { errorMessage } from './api/error-message';
 
 function Welcome() {
   return <h2>--- Welcome to my workout tracker ---</h2>
