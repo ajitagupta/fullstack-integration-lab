@@ -10,27 +10,48 @@ function Welcome() {
 }
 
 
+
 function WorkoutsPage() {
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
 
+  function load() {
+    setStatus("loading");                       // a new attempt starts
+    getWorkouts()
+      .then((page) => {
+        setWorkouts(page.workouts);
+        setStatus("success");
+      })
+      .catch((err) => {
+        setError(errorMessage(err));
+        setStatus("error");
+      });
+  }
 
   useEffect(() => {
-    getWorkouts()
-      .then((page) => setWorkouts(page.workouts))                      // page is a WorkoutListResponse
-      .catch((err) => setError(errorMessage(err)));
+    load();
   }, []);
 
   return (
     <>
       <h1>My Workout Tracker</h1>
       <Welcome />
-      {error && <p role="alert">{error}</p>}
-      {workouts.map((workout) => (
+      {status === "loading" && <p role="status">Loading workouts…</p>}
+      {status === "error" && (
+        <div role="alert">
+          <p>{error}</p>
+          <button onClick={load}>Try again</button>
+        </div>
+      )}
+      {status === "success" && workouts.length === 0 && (
+        <p>No workouts yet - add your first one.</p>
+      )}
+      {status === "success" && workouts.map((workout) => (
         <p key={workout.id}>
-            <Link to={`/workouts/${workout.id}`}>{workout.sport}</Link>
+          <Link to={`/workouts/${workout.id}`}>{workout.sport}</Link>
         </p>
-     ))}
+      ))}
     </>
   )
 }
