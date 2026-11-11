@@ -14,8 +14,9 @@ test('user can navigate to a workout detail page', async ({ page }) => {
   await page.getByRole('link', { name: 'Workouts' }).click();
   await expect(page).toHaveURL('/workouts');
 
-  await page.getByRole('link', { name: 'swim' }).click();   // adjust to your actual workout name
+  await page.getByRole('link', { name: 'run' }).click();
 
-  await expect(page).toHaveURL('/workouts/1');              // adjust to that workout's id
-  await expect(page.getByText('Workout #1')).toBeVisible(); // adjust to your detail page's text
+  await expect(page).toHaveURL('/workouts/2');
+  await expect(page.getByText('Workout #2')).toBeVisible();
+  await expect(page.getByText('Sport: run')).toBeVisible();
 });

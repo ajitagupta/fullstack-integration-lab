@@ -5,7 +5,7 @@ export default defineConfig({
     environment: 'jsdom',        // use the fake-browser environment
     globals: true,               // so test/expect are available without importing
     setupFiles: './src/setup.ts', // for jest-dom matchers
-    include: ['src/**/*.test.tsx']
+    include: ['src/**/*.test.{ts,tsx}'],
   },
 });
 

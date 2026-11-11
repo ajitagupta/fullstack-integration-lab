@@ -68,5 +68,18 @@ Component ◀── checked WorkoutListResponse ┘
 - Changing the `except` type instead of the condition just moved the bug: every list request returned `400`.
 - `npx tsc` outside `frontend/` downloaded an unrelated package called `tsc`. Run frontend tools from `frontend/`; in a Vite project, use `npx tsc -b`.
 
-## Open
-- **Session 4:** connection-status check; CORS or Vite proxy; components switched to the API layer; test for a malformed response.
+## Connecting frontend and API
+- **CORS:** the browser blocks responses from another origin (port 5000 vs. 5173) unless the API allows it. `flask-cors` lists the allowed origins from `CORS_ORIGINS` (default `http://localhost:5173`; comma-separated list). Chosen over a Vite proxy because frontend and API run on different domains in production too.
+- **Pages:** `WorkoutsPage` and `WorkoutDetailPage` load data only through `getWorkouts()` / `getWorkout(id)`; both show a readable message for every failure through the shared `errorMessage()` in `api/error-message.ts`. The local `Workout` interface was removed — one type, defined next to the code that checks it.
+- **Connection status:** `checkConnection()` returns `true` if the API answered at all (even with an error) and `false` only on `NetworkError`; `ConnectionStatus` shows it in the layout. It checks once on page load.
+
+## Frontend tests
+- `workout-types.test.ts` (Vitest): a valid workout passes `parseWorkout` unchanged; `distance_km: "5"` is rejected with `InvalidResponseError`.
+- Playwright navigation tests updated from the old sample data to the seeded data (`run`, id 2). They now depend on the running stack and the seed data; isolated test data follows in milestone 10.
+
+## Lessons learned (session 4)
+- A `500` with "password authentication failed" after rebuilding the API: running `docker compose` from `backend/` and a root `.env` overwritten by `Copy-Item .env.example .env` gave the API a different password from the one stored in the database volume. Fixed without data loss via `ALTER ROLE workouts_app PASSWORD ...` inside the `db` container. Always run `docker compose` from the repo root.
+- A wrong `.env` doesn't fail immediately: containers keep their configuration until they are recreated.
+- Opening the API URL with the API stopped shows the browser's error page; opening the frontend shows the app's own message. Only the second tests the app's error handling.
+- An end-to-end test failing after 30 s usually means it waited for an element that never appeared — check whether every service it needs is running.
+- `vitest.config.ts` only included `*.test.tsx`, so a new `*.test.ts` file was silently skipped. Widened to `*.test.{ts,tsx}`. Check the test **count**, not just "passed".
