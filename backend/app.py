@@ -4,8 +4,11 @@ import os
 from apscheduler.schedulers.background import BackgroundScheduler
 import cache
 import re
+from flask_cors import CORS
 
 app = Flask(__name__)
+
+CORS(app, origins=os.environ.get("CORS_ORIGINS", "http://localhost:5173").split(","))
 
 def error_response(errors, status=400):
     return jsonify({"errors": errors}), status
