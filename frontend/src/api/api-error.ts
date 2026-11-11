@@ -17,3 +17,4 @@ export class ApiError extends Error {
 
 export class InvalidResponseError extends Error {}
 
+export class NetworkError extends Error {}
