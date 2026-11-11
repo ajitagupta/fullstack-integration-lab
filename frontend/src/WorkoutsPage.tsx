@@ -1,13 +1,16 @@
 import { Link } from 'react-router-dom';
+import { getWorkouts } from './api/workout-api';
+import type { Workout } from './api/workout-types';
+import { ApiError, InvalidResponseError, NetworkError } from './api/api-error';
+import { useEffect, useState } from 'react';
 import './App.css'
 
-interface Workout {
-  id: number;
-  sport: string;
-  distance?: number;
-  duration?: number;
+function errorMessage(err: unknown): string {
+  if (err instanceof NetworkError) return err.message;
+  if (err instanceof ApiError) return err.message;                  // the server's own message
+  if (err instanceof InvalidResponseError) return "The server sent unexpected data.";
+  return "Something went wrong.";
 }
-
 
 function Welcome() {
   return <h2>--- Welcome to my workout tracker ---</h2>
@@ -15,16 +18,21 @@ function Welcome() {
 
 
 function WorkoutsPage() {
+  const [workouts, setWorkouts] = useState<Workout[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
-  const workouts: Workout[] = [
-    {id: 1,sport: "swim", distance: 0.6, duration: 23},
-    {id: 2, sport: "cycle", distance: 10, duration: 20},
-    {id: 3, sport: "run", distance: 5, duration: 31}
-  ]
+
+  useEffect(() => {
+    getWorkouts()
+      .then((page) => setWorkouts(page.workouts))                      // page is a WorkoutListResponse
+      .catch((err) => setError(errorMessage(err)));
+  }, []);
+
   return (
     <>
       <h1>My Workout Tracker</h1>
       <Welcome />
+      {error && <p role="alert">{error}</p>}
       {workouts.map((workout) => (
         <p key={workout.id}>
             <Link to={`/workouts/${workout.id}`}>{workout.sport}</Link>
