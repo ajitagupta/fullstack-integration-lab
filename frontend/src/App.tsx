@@ -3,11 +3,13 @@ import HomePage from './HomePage';
 import WorkoutsPage from './WorkoutsPage';
 import WorkoutDetailPage from './WorkoutDetailsPage';
 import './App.css'
+import ConnectionStatus from './ConnectionStatus';
 
 function Layout() {
   return (
     <div>
       <nav><Link to="/">Home</Link> | <Link to="/workouts">Workouts</Link></nav>
+      <ConnectionStatus />
       <hr />
       <Outlet />
     </div>

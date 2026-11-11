@@ -1,6 +1,8 @@
 // frontend/src/api/workout-api.ts
 import { request } from "./client";
 import { parseWorkout, parseWorkoutList, type NewWorkout, type Workout, type WorkoutListResponse } from "./workout-types";
+import { NetworkError } from "./api-error";
+
 
 export async function getWorkouts(): Promise<WorkoutListResponse> {
   const data = await request(`/workouts`);
@@ -19,4 +21,14 @@ export async function createWorkout(workout: NewWorkout): Promise<Workout> {
     body: JSON.stringify(workout),
   });
   return parseWorkout(data);
+}
+
+export async function checkConnection(): Promise<boolean> {
+  try {
+    await request("/workouts?limit=1");
+    return true;
+  } catch (err) {
+    if (err instanceof NetworkError) return false;
+    return true;
+  }
 }
