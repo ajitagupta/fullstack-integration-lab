@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from models import Workout
 
 load_dotenv()
-engine = create_engine(os.environ["DATABASE_URL"])            # from DATABASE_URL, as in check_db.py
+engine = create_engine(os.environ["DATABASE_URL"], pool_pre_ping=True)            # from DATABASE_URL, as in check_db.py
 SessionLocal = sessionmaker(engine)    # a factory: SessionLocal() gives you a new session
 
 def to_dict(workout):
