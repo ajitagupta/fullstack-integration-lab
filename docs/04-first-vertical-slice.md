@@ -53,13 +53,21 @@ Status messages use ARIA roles so screen readers announce them: `role="status"` 
 - Alembic printing no "Running upgrade" line means "already up to date" — a sign it ran against the wrong (already migrated) database. Check with `echo $env:DATABASE_URL` before running against a remote database.
 - `PORT=500` instead of `5000`: Render waited 10 minutes for the wrong port, then failed the deploy. The app's own log ("Running on ...:5000") showed the real port.
 - The root URL returns the JSON `404` from the contract — not an error, the API has no route at `/`.
-
+- The first Vercel build failed in `tsc -b`: the test libraries (`vitest`, `@testing-library/*`, `jsdom`) were installed locally but missing from `frontend/package.json` — most likely `npm install -D` had run in another folder on day 1. Locally everything worked from `node_modules`; Vercel installs only what the repo declares. Fixed by reinstalling them in `frontend/`.
+- Test files are now excluded from the app's type check (`exclude` in `tsconfig.app.json`), so the production build doesn't depend on test tooling.
 
 ## Deployment: database and API
 | Part | Service | Region | Notes |
 |---|---|---|---|
 | PostgreSQL | Neon (free) | AWS Frankfurt | Direct (non-pooled) connection string; free tier does not expire, unlike Render's free PostgreSQL (30 days) |
 | Flask API | Render web service (free, Docker) | Frankfurt | Built from `backend/Dockerfile`; same image as locally |
+
+## Deployment: frontend
+| Part | Service | Notes |
+|---|---|---|
+| React frontend | Vercel (Vite preset) | Root directory `frontend`; `VITE_API_URL` = the Render address, without trailing `/` |
+
+`VITE_` variables are baked into the built files at build time: changing one requires a redeploy, and they are readable in the browser — never put secrets in them.
 
 **Render environment:** `DATABASE_URL` (Neon, scheme changed to `postgresql+psycopg://`), `CORS_ORIGINS` (`http://localhost:5173` for now), `PORT=5000` (the port Flask listens on).
 
