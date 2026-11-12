@@ -49,6 +49,27 @@ Status messages use ARIA roles so screen readers announce them: `role="status"` 
 - The Network tab only records while open; clicking a link to the page you are already on does not remount it.
 - `ERR_CONNECTION_REFUSED` lines in the Console come from the browser itself for every failed request, even when the app handles the error.
 - A Playwright test that times out waiting for a link: check `docker compose ps` first — the API had stopped. The page snapshot in `test-results/.../error-context.md` showed "Can't reach the server."
+- A remote database URL belongs only in Neon itself and in Render's settings, never in a file in the repo folder, not even an ignored `.env`. With it in `backend/.env`, every local command (including `seed.py`, which empties the table) would have hit production.
+- Alembic printing no "Running upgrade" line means "already up to date" — a sign it ran against the wrong (already migrated) database. Check with `echo $env:DATABASE_URL` before running against a remote database.
+- `PORT=500` instead of `5000`: Render waited 10 minutes for the wrong port, then failed the deploy. The app's own log ("Running on ...:5000") showed the real port.
+- The root URL returns the JSON `404` from the contract — not an error, the API has no route at `/`.
+
+
+## Deployment: database and API
+| Part | Service | Region | Notes |
+|---|---|---|---|
+| PostgreSQL | Neon (free) | AWS Frankfurt | Direct (non-pooled) connection string; free tier does not expire, unlike Render's free PostgreSQL (30 days) |
+| Flask API | Render web service (free, Docker) | Frankfurt | Built from `backend/Dockerfile`; same image as locally |
+
+**Render environment:** `DATABASE_URL` (Neon, scheme changed to `postgresql+psycopg://`), `CORS_ORIGINS` (`http://localhost:5173` for now), `PORT=5000` (the port Flask listens on).
+
+**Schema and data on Neon:** created from the laptop with the same migration and seed:
+```powershell
+$env:DATABASE_URL = "postgresql+psycopg://...neon.tech/...?sslmode=require"
+alembic upgrade head
+python seed.py
+Remove-Item Env:DATABASE_URL
+```
 
 ## Open
 - **Session 3:** Neon PostgreSQL; Flask API on Render; migrations in production; `DATABASE_URL` and `CORS_ORIGINS` there.
