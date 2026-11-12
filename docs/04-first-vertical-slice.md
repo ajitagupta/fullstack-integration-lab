@@ -65,7 +65,7 @@ Status messages use ARIA roles so screen readers announce them: `role="status"` 
 ## Deployment: frontend
 | Part | Service | Notes |
 |---|---|---|
-| React frontend | Vercel (Vite preset) | Root directory `frontend`; `VITE_API_URL` = the Render address, without trailing `/` |
+| React frontend | Vercel (Vite preset) | https://workout-tracker-ajita.vercel.app — root directory `frontend`; `VITE_API_URL` = the Render address, without trailing `/` |
 
 `VITE_` variables are baked into the built files at build time: changing one requires a redeploy, and they are readable in the browser — never put secrets in them.
 

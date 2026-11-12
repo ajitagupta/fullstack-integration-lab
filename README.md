@@ -21,6 +21,12 @@ docker compose exec api python seed.py
 | http://localhost:5000/workouts | API (Flask) |
 | `localhost:5433` | PostgreSQL (user `workouts_app`) |
 
+## Live demo
+| | URL |
+|---|---|
+| App | https://workout-tracker-ajita.vercel.app |
+| API | https://workouts-tracker-7b09.onrender.com/workouts |
+
 ### Everyday commands
 | Command | What it does | Deletes data? |
 |---|---|---|
