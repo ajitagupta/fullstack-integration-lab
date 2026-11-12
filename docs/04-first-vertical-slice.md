@@ -72,6 +72,5 @@ Remove-Item Env:DATABASE_URL
 ```
 
 ## Open
-- **Session 3:** Neon PostgreSQL; Flask API on Render; migrations in production; `DATABASE_URL` and `CORS_ORIGINS` there.
 - **Session 4:** frontend on Vercel with HTTPS and `VITE_API_URL` pointing to Render.
 - **Session 5:** trace one request through browser, Render logs and database; verify "API unavailable" in production; decide how to handle Render's cold start vs. the 10 s timeout.
