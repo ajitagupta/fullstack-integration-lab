@@ -1,5 +1,5 @@
 // frontend/src/forms/validate-workout.ts
-import { SPORTS } from "../api/workout-types";
+import { SPORTS, type Sport, type NewWorkout } from "../api/workout-types";
 
 // What the form holds: always strings, straight from the inputs
 export type WorkoutFormValues = {
@@ -7,6 +7,15 @@ export type WorkoutFormValues = {
   distance: string;
   duration: string;
 };
+
+
+export function toNewWorkout(values: WorkoutFormValues): NewWorkout {
+  return {
+    sport: values.sport as Sport,
+    distance_km: values.distance.trim() !== "" ? Number(values.distance) : undefined,
+    duration_min: values.duration.trim() !== "" ? Number(values.duration) : undefined
+  };
+}
 
 // One message per field, or nothing. {} means "valid"
 export type FieldErrors = Partial<Record<keyof WorkoutFormValues, string>>;

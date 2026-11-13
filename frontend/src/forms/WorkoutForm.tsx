@@ -1,27 +1,64 @@
 import { useState } from "react";
 import { SPORTS } from "../api/workout-types";
-import { validateWorkout, type WorkoutFormValues } from "./validate-workout";
+import { validateWorkout, toNewWorkout, type WorkoutFormValues, type FieldErrors } from "./validate-workout";
+import { createWorkout } from "../api/workout-api";
+import { ApiError } from "../api/api-error";
+import { errorMessage } from "../api/error-message";
 
 const EMPTY: WorkoutFormValues = { sport: "", distance: "", duration: "" };
+
+// API field name → form field name
+const API_TO_FORM: Record<string, keyof WorkoutFormValues> = {
+  sport: "sport",
+  distance_km: "distance",
+  duration_min: "duration",
+};
 
 export function WorkoutForm() {
   const [values, setValues] = useState<WorkoutFormValues>(EMPTY);
   const [submitted, setSubmitted] = useState(false);   // show errors only after the first submit
+  const [serverErrors, setServerErrors] = useState<FieldErrors>({});
+  const [formError, setFormError] = useState<string | null>(null);
 
   const errors = validateWorkout(values);              // recomputed on every render
-  const show = (field: keyof WorkoutFormValues) => submitted ? errors[field] : undefined;
-
+  const show = (field: keyof WorkoutFormValues) =>
+  submitted ? errors[field] ?? serverErrors[field] : undefined;
   // One handler for all fields: the input's `name` says which field to update
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
     setValues({ ...values, [e.target.name]: e.target.value });
   }
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setSubmitted(true);
-    if (Object.keys(errors).length > 0) return;        // invalid → stay, errors now visible
-    console.log("Valid workout:", values);             // 05.2: createWorkout(...)
+  async function handleSubmit(e: React.FormEvent) {
+  e.preventDefault();
+  setSubmitted(true);
+  setServerErrors({});
+  setFormError(null);
+  if (Object.keys(errors).length > 0) return;
+
+  try {
+    const created = await createWorkout(toNewWorkout(values));
+    console.log("Saved:", created);            // 05.3: success message, reset, list
+  } catch (err) {
+    if (err instanceof ApiError) {
+      const fields: FieldErrors = {};
+      let general: string | null = null;
+      for (const fieldError of err.errors) {                       
+        const formField = fieldError.field ? API_TO_FORM[fieldError.field] : undefined;
+        if (formField) {
+          fields[formField] = fieldError.error;                    
+        } else {
+          general = fieldError.error;                              
+        }
+      }
+      setServerErrors(fields);
+      if (Object.keys(fields).length === 0) {                      
+        setFormError(general ?? errorMessage(err));
+      }
+    } else {
+      setFormError(errorMessage(err));
+    }
   }
+}
 
   return (
     <>
@@ -76,6 +113,7 @@ export function WorkoutForm() {
         />
         {show("duration") && <p id="duration-error" className="field-error">{show("duration")}</p>}
         </div> 
+        {formError && <p role="alert" className="field-error">{formError}</p>}
 
       <button type="submit">Add workout</button>
     </form>
