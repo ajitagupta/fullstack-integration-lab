@@ -13,13 +13,13 @@ A React + TypeScript frontend and a Flask API on PostgreSQL, built in three part
 
 ## The map
 
-![Workout Tracker, built in three parts](milestone-map.svg)
+![Workout Tracker, built in three parts](docs/milestone-map.svg)
 
 | Part | What it covers | Stages |
 |---|---|---|
-| **1. Foundations** | The base everything stands on: database, containers, the browser–API boundary, deployment, reliability | 1–4 |
-| **2. Features** | What you use every day: add, edit, find, see progress, import | 5–8 |
-| **3. Make it awesome** | What makes it yours: bring your Garmin/Strava data, type a sentence, live sync | 9–11 |
+| **1. Foundations** | The base everything stands on: database, containers, the browser–API boundary, deployment, reliability | 1–4 · milestones 00–04, 09–11 |
+| **2. Features** | What you use every day: add, edit, find, see progress, import | 5–8 · milestones 05–07, 13 |
+| **3. Make it awesome** | What makes it yours: bring your Garmin/Strava data, type a sentence, live sync | 9–11 · milestones 08, 14, 15 |
 
 Every feature crosses the same line: **browser → API → database**.
 
@@ -117,7 +117,7 @@ Every feature crosses the same line: **browser → API → database**.
 - _Pagination with a stable sort_
 
 ### 7. See progress 🔜
-**Why it matters:** _(stats)_
+**Why it matters:** _(milestone 13)_
 
 - _Weekly totals per sport, computed in SQL_
 - _Charts_
@@ -135,7 +135,7 @@ Every feature crosses the same line: **browser → API → database**.
 
 *What makes it yours.*
 
-### 9. Bring your data 🔜
+### 9. Bring your data 🔜 _(milestone 14)_
 **Why it matters:** nobody starts from zero. Years of workouts already live in Garmin and Strava.
 
 - _Import Garmin and Strava export files (GPX, FIT, CSV), with no API keys needed_
@@ -145,16 +145,40 @@ Every feature crosses the same line: **browser → API → database**.
 
 - _"ran 5 km in 30 min" → a workout, checked by the same validation as the form_
 
-### 11. Live sync 🔜 *(optional)*
+### 11. Live sync 🔜 _(milestone 15, optional)_
 **Why it matters:** _new activities appear without exporting anything_
 
 - _OAuth login, token refresh, webhooks for new activities_
 
 ---
 
+## All milestones
+
+| # | Milestone | Stage | Status |
+|---|---|---|---|
+| 00 | Baseline: tests, journeys, API contract | 1 Store | ✅ |
+| 01 | PostgreSQL persistence | 1 Store | ✅ |
+| 02 | Docker | 2 Package | ✅ |
+| 03 | Browser–API boundary | 3 Connect & go live | ✅ |
+| 04 | First vertical slice + deployment | 3 Connect & go live | ✅ |
+| 05 | Submit, validate, edit & delete workouts | 5 Add & edit | 🚧 |
+| 06 | Search, filters & pagination | 6 Find | 🔜 |
+| 07 | CSV import | 8 Import | 🔜 |
+| 08 | Natural-language entry | 10 Just type it | 🔜 |
+| 09 | Diagnose failures | 4 Run reliably | 🔜 |
+| 10 | Test the integrated system | 4 Run reliably | 🔜 |
+| 11 | Delivery & deployment | 4 Run reliably | 🔜 |
+| 12 | Documentation & case study | (this README) | 🔜 |
+| 13 | Stats & charts | 7 See progress | 🔜 |
+| 14 | Garmin & Strava file import | 9 Bring your data | 🔜 |
+| 15 | Live sync *(optional)* | 11 Live sync | 🔜 |
+
+---
+
 ## Architecture
 
-![Architecture](./docs/architecture.png)
+<!-- Architecture diagram (docs/architecture.drawio exported as SVG) -->
+<!-- Request sequence: browser → Vercel → Cloudflare/Render → Neon -->
 
 | Layer | Local | Production |
 |---|---|---|
