@@ -61,5 +61,6 @@ Visible in development: React's StrictMode mounts twice, so the Network tab show
 - A Playwright test timing out on a missing link: check `docker compose ps` first; `test-results/.../error-context.md` shows what the page displayed.
 - `ERR_CONNECTION_REFUSED` in the Console is logged by the browser even when the app handles the failure.
 
-## Open
-- **Session 5:** trace one request through browser, Render logs and database; verify the error state in production; decide on Render's cold start vs. the 10 s timeout.
+### Cold start (Render free tier)
+- Measured 13 Nov: server awake after ~25 s; the client times out at 10 s, so the first load shows the timeout error, and **Try again** works afterwards.
+- Decision: **C, accept and document.** A free-tier limitation, not an app bug; noted in the README.
