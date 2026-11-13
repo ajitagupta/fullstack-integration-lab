@@ -28,7 +28,7 @@ export type NewWorkout = {
 };
 
 
-const SPORTS: Sport[] = ["run", "cycle", "swim", "badminton", "strength", "rest"];
+export const SPORTS: Sport[] = ["run", "cycle", "swim", "badminton", "strength", "rest"];
 
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
