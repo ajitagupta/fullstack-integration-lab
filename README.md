@@ -152,32 +152,10 @@ Every feature crosses the same line: **browser → API → database**.
 
 ---
 
-## All milestones
-
-| # | Milestone | Stage | Status |
-|---|---|---|---|
-| 00 | Baseline: tests, journeys, API contract | 1 Store | ✅ |
-| 01 | PostgreSQL persistence | 1 Store | ✅ |
-| 02 | Docker | 2 Package | ✅ |
-| 03 | Browser–API boundary | 3 Connect & go live | ✅ |
-| 04 | First vertical slice + deployment | 3 Connect & go live | ✅ |
-| 05 | Submit, validate, edit & delete workouts | 5 Add & edit | 🚧 |
-| 06 | Search, filters & pagination | 6 Find | 🔜 |
-| 07 | CSV import | 8 Import | 🔜 |
-| 08 | Natural-language entry | 10 Just type it | 🔜 |
-| 09 | Diagnose failures | 4 Run reliably | 🔜 |
-| 10 | Test the integrated system | 4 Run reliably | 🔜 |
-| 11 | Delivery & deployment | 4 Run reliably | 🔜 |
-| 12 | Documentation & case study | (this README) | 🔜 |
-| 13 | Stats & charts | 7 See progress | 🔜 |
-| 14 | Garmin & Strava file import | 9 Bring your data | 🔜 |
-| 15 | Live sync *(optional)* | 11 Live sync | 🔜 |
-
----
-
 ## Architecture
 
 <!-- Architecture diagram (docs/architecture.drawio exported as SVG) -->
+![Architecture](docs/architecture.png)
 <!-- Request sequence: browser → Vercel → Cloudflare/Render → Neon -->
 
 | Layer | Local | Production |
