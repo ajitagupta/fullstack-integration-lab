@@ -154,7 +154,7 @@ Every feature crosses the same line: **browser → API → database**.
 
 ## Architecture
 
-![Architecture](../docs/architecture.png)
+![Architecture](./docs/architecture.png)
 
 | Layer | Local | Production |
 |---|---|---|
