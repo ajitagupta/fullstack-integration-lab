@@ -1,0 +1,125 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 950" width="1200" height="950">
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="context-stroke"/></marker></defs>
+<rect width="1200" height="950" fill="#fcfbf7"/>
+<text x="600" y="86" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="50" font-weight="900" fill="#111">Workout Tracker, Built in Three Parts</text>
+<text x="600" y="124" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="20" fill="#555">A solid foundation, the features you use every day, and the extras that make it yours</text>
+<rect x="400" y="152" width="22" height="16" rx="4" fill="#d3eee8" stroke="#0f766e" stroke-width="1.8"/>
+<text x="430" y="166" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="16" fill="#444">done</text>
+<rect x="500" y="152" width="22" height="16" rx="4" fill="#ffffff" stroke="#0f766e" stroke-width="1.8"/>
+<text x="530" y="166" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="16" fill="#444">in progress</text>
+<rect x="663" y="152" width="22" height="16" rx="4" fill="#ffffff" stroke="#8a94a6" stroke-width="1.8" stroke-dasharray="4 3"/>
+<text x="693" y="166" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="16" fill="#444">next</text>
+<rect x="22" y="182" width="1156" height="206" rx="18" fill="#f4f1e8" stroke="#ddd6c4" stroke-width="1.5"/>
+<rect x="22" y="182" width="8" height="206" rx="4" fill="#e8735a"/>
+<text x="1160" y="212" text-anchor="end" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="15" font-weight="700" letter-spacing="2" fill="#e8735a">PART 1 · FOUNDATIONS</text>
+<rect x="22" y="412" width="1156" height="206" rx="18" fill="#f4f1e8" stroke="#ddd6c4" stroke-width="1.5"/>
+<rect x="22" y="412" width="8" height="206" rx="4" fill="#e8735a"/>
+<text x="1160" y="442" text-anchor="end" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="15" font-weight="700" letter-spacing="2" fill="#e8735a">PART 2 · FEATURES</text>
+<rect x="22" y="642" width="1156" height="206" rx="18" fill="#f4f1e8" stroke="#ddd6c4" stroke-width="1.5"/>
+<rect x="22" y="642" width="8" height="206" rx="4" fill="#e8735a"/>
+<text x="1160" y="672" text-anchor="end" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="15" font-weight="700" letter-spacing="2" fill="#e8735a">PART 3 · MAKE IT AWESOME</text>
+<rect x="52" y="237" width="245" height="134" rx="14" fill="#0f766e22"/>
+<rect x="48" y="232" width="245" height="134" rx="14" fill="#d3eee8" stroke="#0f766e" stroke-width="2.2"/>
+<circle cx="54" cy="236" r="17" fill="#0f766e" stroke="#0f766e" stroke-width="2"/>
+<text x="54" y="243" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="18" font-weight="700" fill="#fff">1</text>
+<text x="170.5" y="269" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="23" font-weight="700" fill="#0b3d38">Store</text>
+<line x1="142.5" y1="282" x2="198.5" y2="282" stroke="#e8735a" stroke-width="3" stroke-linecap="round"/>
+<text x="170.5" y="308" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="16.5" fill="#2b2f36">PostgreSQL • ORM</text>
+<text x="170.5" y="331" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="16.5" fill="#2b2f36">migrations • constraints</text>
+<text x="170.5" y="355" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" letter-spacing="1" fill="#6b7280">MILESTONES 00, 01</text>
+<line x1="300" y1="299.0" x2="327" y2="299.0" stroke="#0f766e" stroke-width="2.5" marker-end="url(#a)"/>
+<rect x="343" y="237" width="245" height="134" rx="14" fill="#0f766e22"/>
+<rect x="339" y="232" width="245" height="134" rx="14" fill="#d3eee8" stroke="#0f766e" stroke-width="2.2"/>
+<circle cx="345" cy="236" r="17" fill="#0f766e" stroke="#0f766e" stroke-width="2"/>
+<text x="345" y="243" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="18" font-weight="700" fill="#fff">2</text>
+<text x="461.5" y="269" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="23" font-weight="700" fill="#0b3d38">Package</text>
+<line x1="433.5" y1="282" x2="489.5" y2="282" stroke="#e8735a" stroke-width="3" stroke-linecap="round"/>
+<text x="461.5" y="308" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="16.5" fill="#2b2f36">Docker • Compose</text>
+<text x="461.5" y="331" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="16.5" fill="#2b2f36">volumes • health checks</text>
+<text x="461.5" y="355" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" letter-spacing="1" fill="#6b7280">MILESTONE 02</text>
+<line x1="591" y1="299.0" x2="618" y2="299.0" stroke="#0f766e" stroke-width="2.5" marker-end="url(#a)"/>
+<rect x="634" y="237" width="245" height="134" rx="14" fill="#0f766e22"/>
+<rect x="630" y="232" width="245" height="134" rx="14" fill="#d3eee8" stroke="#0f766e" stroke-width="2.2"/>
+<circle cx="636" cy="236" r="17" fill="#0f766e" stroke="#0f766e" stroke-width="2"/>
+<text x="636" y="243" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="18" font-weight="700" fill="#fff">3</text>
+<text x="752.5" y="269" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="23" font-weight="700" fill="#0b3d38">Connect &amp; go live</text>
+<line x1="724.5" y1="282" x2="780.5" y2="282" stroke="#e8735a" stroke-width="3" stroke-linecap="round"/>
+<text x="752.5" y="308" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="16.5" fill="#2b2f36">typed API client • CORS</text>
+<text x="752.5" y="331" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="16.5" fill="#2b2f36">Vercel • Render • Neon</text>
+<text x="752.5" y="355" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" letter-spacing="1" fill="#6b7280">MILESTONES 03, 04</text>
+<line x1="882" y1="299.0" x2="909" y2="299.0" stroke="#0f766e" stroke-width="2.5" marker-end="url(#a)"/>
+<rect x="921" y="232" width="245" height="134" rx="14" fill="#ffffff" stroke="#8a94a6" stroke-width="2.2" stroke-dasharray="7 5"/>
+<circle cx="927" cy="236" r="17" fill="#fff" stroke="#8a94a6" stroke-width="2"/>
+<text x="927" y="243" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="18" font-weight="700" fill="#5b6577">4</text>
+<text x="1043.5" y="269" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="23" font-weight="700" fill="#3a4252">Run reliably</text>
+<line x1="1015.5" y1="282" x2="1071.5" y2="282" stroke="#e8735a" stroke-width="3" stroke-linecap="round"/>
+<text x="1043.5" y="308" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="16.5" fill="#2b2f36">logs • tests</text>
+<text x="1043.5" y="331" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="16.5" fill="#2b2f36">CI/CD • rollback</text>
+<text x="1043.5" y="355" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" letter-spacing="1" fill="#6b7280">MILESTONES 09, 10, 11</text>
+<path d="M1043.5,366 V396 Q1043.5,404 1035.5,404 H178.5 Q170.5,404 170.5,412 V438" fill="none" stroke="#8a94a6" stroke-width="2.5" marker-end="url(#a)"/>
+<rect x="48" y="462" width="245" height="134" rx="14" fill="#ffffff" stroke="#0f766e" stroke-width="2.2"/>
+<circle cx="54" cy="466" r="17" fill="#fff" stroke="#0f766e" stroke-width="2"/>
+<text x="54" y="473" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="18" font-weight="700" fill="#0f766e">5</text>
+<text x="170.5" y="499" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="23" font-weight="700" fill="#0b3d38">Add &amp; edit</text>
+<line x1="142.5" y1="512" x2="198.5" y2="512" stroke="#e8735a" stroke-width="3" stroke-linecap="round"/>
+<text x="170.5" y="538" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="16.5" fill="#2b2f36">forms • validation</text>
+<text x="170.5" y="561" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="16.5" fill="#2b2f36">edit • delete</text>
+<text x="170.5" y="585" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" letter-spacing="1" fill="#6b7280">MILESTONE 05</text>
+<line x1="300" y1="529.0" x2="327" y2="529.0" stroke="#8a94a6" stroke-width="2.5" marker-end="url(#a)"/>
+<rect x="339" y="462" width="245" height="134" rx="14" fill="#ffffff" stroke="#8a94a6" stroke-width="2.2" stroke-dasharray="7 5"/>
+<circle cx="345" cy="466" r="17" fill="#fff" stroke="#8a94a6" stroke-width="2"/>
+<text x="345" y="473" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="18" font-weight="700" fill="#5b6577">6</text>
+<text x="461.5" y="499" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="23" font-weight="700" fill="#3a4252">Find</text>
+<line x1="433.5" y1="512" x2="489.5" y2="512" stroke="#e8735a" stroke-width="3" stroke-linecap="round"/>
+<text x="461.5" y="538" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="16.5" fill="#2b2f36">search • filters</text>
+<text x="461.5" y="561" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="16.5" fill="#2b2f36">pagination</text>
+<text x="461.5" y="585" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" letter-spacing="1" fill="#6b7280">MILESTONE 06</text>
+<line x1="591" y1="529.0" x2="618" y2="529.0" stroke="#8a94a6" stroke-width="2.5" marker-end="url(#a)"/>
+<rect x="630" y="462" width="245" height="134" rx="14" fill="#ffffff" stroke="#8a94a6" stroke-width="2.2" stroke-dasharray="7 5"/>
+<circle cx="636" cy="466" r="17" fill="#fff" stroke="#8a94a6" stroke-width="2"/>
+<text x="636" y="473" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="18" font-weight="700" fill="#5b6577">7</text>
+<text x="752.5" y="499" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="23" font-weight="700" fill="#3a4252">See progress</text>
+<line x1="724.5" y1="512" x2="780.5" y2="512" stroke="#e8735a" stroke-width="3" stroke-linecap="round"/>
+<text x="752.5" y="538" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="16.5" fill="#2b2f36">weekly totals</text>
+<text x="752.5" y="561" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="16.5" fill="#2b2f36">charts</text>
+<text x="752.5" y="585" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" letter-spacing="1" fill="#6b7280">STATS</text>
+<line x1="882" y1="529.0" x2="909" y2="529.0" stroke="#8a94a6" stroke-width="2.5" marker-end="url(#a)"/>
+<rect x="921" y="462" width="245" height="134" rx="14" fill="#ffffff" stroke="#8a94a6" stroke-width="2.2" stroke-dasharray="7 5"/>
+<circle cx="927" cy="466" r="17" fill="#fff" stroke="#8a94a6" stroke-width="2"/>
+<text x="927" y="473" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="18" font-weight="700" fill="#5b6577">8</text>
+<text x="1043.5" y="499" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="23" font-weight="700" fill="#3a4252">Import</text>
+<line x1="1015.5" y1="512" x2="1071.5" y2="512" stroke="#e8735a" stroke-width="3" stroke-linecap="round"/>
+<text x="1043.5" y="538" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="16.5" fill="#2b2f36">CSV upload • preview</text>
+<text x="1043.5" y="561" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="16.5" fill="#2b2f36">all-or-nothing</text>
+<text x="1043.5" y="585" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" letter-spacing="1" fill="#6b7280">MILESTONE 07</text>
+<path d="M1043.5,596 V626 Q1043.5,634 1035.5,634 H178.5 Q170.5,634 170.5,642 V668" fill="none" stroke="#8a94a6" stroke-width="2.5" marker-end="url(#a)"/>
+<rect x="48" y="692" width="245" height="134" rx="14" fill="#ffffff" stroke="#8a94a6" stroke-width="2.2" stroke-dasharray="7 5"/>
+<circle cx="54" cy="696" r="17" fill="#fff" stroke="#8a94a6" stroke-width="2"/>
+<text x="54" y="703" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="18" font-weight="700" fill="#5b6577">9</text>
+<text x="170.5" y="729" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="23" font-weight="700" fill="#3a4252">Bring your data</text>
+<line x1="142.5" y1="742" x2="198.5" y2="742" stroke="#e8735a" stroke-width="3" stroke-linecap="round"/>
+<text x="170.5" y="768" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="16.5" fill="#2b2f36">Garmin &amp; Strava exports</text>
+<text x="170.5" y="791" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="16.5" fill="#2b2f36">GPX • FIT • CSV</text>
+<text x="170.5" y="815" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" letter-spacing="1" fill="#6b7280">FILE IMPORT</text>
+<line x1="300" y1="759.0" x2="327" y2="759.0" stroke="#8a94a6" stroke-width="2.5" marker-end="url(#a)"/>
+<rect x="339" y="692" width="245" height="134" rx="14" fill="#ffffff" stroke="#8a94a6" stroke-width="2.2" stroke-dasharray="7 5"/>
+<circle cx="345" cy="696" r="17" fill="#fff" stroke="#8a94a6" stroke-width="2"/>
+<text x="345" y="703" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="18" font-weight="700" fill="#5b6577">10</text>
+<text x="461.5" y="729" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="23" font-weight="700" fill="#3a4252">Just type it</text>
+<line x1="433.5" y1="742" x2="489.5" y2="742" stroke="#e8735a" stroke-width="3" stroke-linecap="round"/>
+<text x="461.5" y="768" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="16.5" fill="#2b2f36">“ran 5 km in 30 min”</text>
+<text x="461.5" y="791" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="16.5" fill="#2b2f36">→ a workout</text>
+<text x="461.5" y="815" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" letter-spacing="1" fill="#6b7280">MILESTONE 08</text>
+<line x1="591" y1="759.0" x2="618" y2="759.0" stroke="#8a94a6" stroke-width="2.5" marker-end="url(#a)"/>
+<rect x="630" y="692" width="245" height="134" rx="14" fill="#ffffff" stroke="#8a94a6" stroke-width="2.2" stroke-dasharray="7 5"/>
+<circle cx="636" cy="696" r="17" fill="#fff" stroke="#8a94a6" stroke-width="2"/>
+<text x="636" y="703" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="18" font-weight="700" fill="#5b6577">11</text>
+<text x="752.5" y="729" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="23" font-weight="700" fill="#3a4252">Live sync</text>
+<line x1="724.5" y1="742" x2="780.5" y2="742" stroke="#e8735a" stroke-width="3" stroke-linecap="round"/>
+<text x="752.5" y="768" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="16.5" fill="#2b2f36">OAuth • webhooks</text>
+<text x="752.5" y="791" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="16.5" fill="#2b2f36">new activities arrive</text>
+<text x="752.5" y="815" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" letter-spacing="1" fill="#6b7280">OPTIONAL</text>
+<path d="M700,915 Q860,907 1028,914" fill="none" stroke="#e8735a" stroke-width="5" stroke-linecap="round"/>
+<text x="680" y="905" text-anchor="end" font-family="'Segoe Print','Comic Sans MS','Bradley Hand',cursive" font-size="27" fill="#111">Every feature crosses the same line:</text>
+<text x="862" y="905" text-anchor="middle" font-family="'Segoe Print','Comic Sans MS','Bradley Hand',cursive" font-size="27" fill="#111">browser → API → database</text>
+</svg>
