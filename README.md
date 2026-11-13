@@ -13,7 +13,7 @@ A React + TypeScript frontend and a Flask API on PostgreSQL, built in three part
 
 ## The map
 
-![Workout Tracker, built in three parts](docs/milestone-map.svg)
+![Workout Tracker, built in three parts](./milestone-map.svg)
 
 | Part | What it covers | Stages |
 |---|---|---|
