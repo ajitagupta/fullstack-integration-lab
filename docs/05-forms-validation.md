@@ -6,7 +6,7 @@
 
 | | |
 |---|---|
-| Status | Session 1 of 4 done |
+| Status | Sessions 1–2 of 4 done |
 | New route | `/workouts/new` |
 | New files | `src/forms/validate-workout.ts`, `src/forms/validate-workout.test.ts`, `src/forms/WorkoutForm.tsx` |
 
@@ -52,15 +52,45 @@ All 8 new tests failed with `Cannot read properties of undefined (reading 'inclu
 
 **Why TypeScript didn't catch it:** Vitest strips types **without checking them**, for speed. A missing export doesn't stop the test run; it becomes `undefined` at runtime. (The editor does show it as an error.)
 
-### Open for session 2
-
-The form values are still strings (`{ sport: 'run', distance: '5.2', duration: '33' }`). Before sending, they have to become the API's format: numbers, and nothing for an empty optional field.
-
 ---
 
-## Session 2: Server validation + field-error mapping
+## Session 2: Sending the form + server errors in the form
 
-_(next)_
+**Key idea:** the server is the authority. Client checks are a convenience for the user; anyone can bypass them, so every rule must also hold on the server.
+
+### Form values → API request: `toNewWorkout`
+
+| Form (strings) | API (`NewWorkout`) |
+|---|---|
+| `sport: "run"` | `sport: "run"` (as `Sport`, already validated) |
+| `distance: "5.2"` | `distance_km: 5.2` |
+| `distance: ""` | key left out (`undefined`) |
+| `duration: "33"` | `duration_min: 33` |
+
+`NewWorkout` uses optional fields, so "not given" is `undefined`, not `null`. `JSON.stringify` drops `undefined` keys: a run without distance is sent as `{"sport":"run","duration_min":30}` (`Content-Length: 33` in the Network tab).
+
+### Three outcomes, three places
+
+| Outcome | Shown where |
+|---|---|
+| Success → the API returns the new workout | (session 3) |
+| `ApiError` with a known `field` (400) | under that field |
+| Anything else: network error, timeout, 500, error without a field | one message above the button (`role="alert"`) |
+
+The API and the form use **different field names**, so server errors are mapped back:
+
+```ts
+const API_TO_FORM = { sport: "sport", distance_km: "distance", duration_min: "duration" };
+```
+
+Under each field, a client error wins over a server error (`errors[field] ?? serverErrors[field]`); the server's message shows when the client had nothing to say.
+
+### Verified
+
+- **Valid run** submitted from the form → stored as id 41; the total went from 40 to 41.
+- **Server error path:** client validation bypassed on purpose → `POST /workouts` returned **400** with `{"field":"distance_km","error":"The key distance_km is missing."}`, and the message appeared under **Distance**.
+- **Network error:** API container stopped → "Can't reach the server." above the button.
+- **CORS preflight:** the Network tab shows an `OPTIONS /workouts` before the `POST`. A JSON `POST` from another origin makes the browser ask the API for permission first.
 
 ## Session 3: Submission state, duplicate clicks, success feedback
 
