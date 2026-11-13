@@ -2,13 +2,14 @@ import { Route, Link, Outlet, BrowserRouter, Routes } from 'react-router-dom';
 import HomePage from './HomePage';
 import WorkoutsPage from './WorkoutsPage';
 import WorkoutDetailPage from './WorkoutDetailsPage';
+import { WorkoutForm } from "./forms/WorkoutForm";
 import './App.css'
 import ConnectionStatus from './ConnectionStatus';
 
 function Layout() {
   return (
     <div>
-      <nav><Link to="/">Home</Link> | <Link to="/workouts">Workouts</Link></nav>
+      <nav><Link to="/">Home</Link> | <Link to="/workouts">Workouts</Link> | <Link to="/workouts/new">Add Workout</Link></nav>
       <ConnectionStatus />
       <hr />
       <Outlet />
@@ -25,6 +26,7 @@ function App() {
           <Route index element={<HomePage />} />
           <Route path="workouts" element={<WorkoutsPage />} />
           <Route path="workouts/:id" element={<WorkoutDetailPage />} />
+          <Route path="workouts/new" element={<WorkoutForm />} />
         </Route>
       </Routes>
     </BrowserRouter>

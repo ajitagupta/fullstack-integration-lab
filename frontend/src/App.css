@@ -182,3 +182,9 @@
     border-right-color: var(--border);
   }
 }
+
+.field-error { color: #b42318; margin: 4px 0 0; }
+
+form div { margin-bottom: 12px; text-align: left; }
+form label { display: block; margin-bottom: 4px; }
+form { max-width: 320px; margin: 0 auto; }
