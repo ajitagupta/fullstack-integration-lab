@@ -6,9 +6,9 @@
 
 | | |
 |---|---|
-| Status | Sessions 1–2 of 4 done |
+| Status | Sessions 1–4 done · edit & delete next |
 | New route | `/workouts/new` |
-| New files | `src/forms/validate-workout.ts`, `src/forms/validate-workout.test.ts`, `src/forms/WorkoutForm.tsx` |
+| New files | `src/forms/validate-workout.ts`, `src/forms/validate-workout.test.ts`, `src/forms/WorkoutForm.tsx`, `src/forms/WorkoutForm.test.tsx` |
 
 ---
 
@@ -92,10 +92,60 @@ Under each field, a client error wins over a server error (`errors[field] ?? ser
 - **Network error:** API container stopped → "Can't reach the server." above the button.
 - **CORS preflight:** the Network tab shows an `OPTIONS /workouts` before the `POST`. A JSON `POST` from another origin makes the browser ask the API for permission first.
 
-## Session 3: Submission state, duplicate clicks, success feedback
+## Session 3: Saving state, double submits, success feedback
 
-_(planned)_
+### What the user sees while saving
 
-## Session 4: The lost-response scenario
+| Moment | UI |
+|---|---|
+| Saving | Button disabled and reads "Saving…" |
+| A second click while saving | Ignored (`if (saving) return`), so a double click can't create two workouts |
+| Success | Fields reset, "Workout #42 saved." (`role="status"`) |
+| Failure | Values **kept**, so nothing has to be retyped |
+
+`setSaving(false)` sits in **`finally`**, which runs after success *and* after an error. Placed after the `await`, it would only run on success, and a failed request would leave the button stuck on "Saving…".
+
+**`role="status"` vs. `role="alert"`:** a success message is announced politely, when the screen reader is ready; an error interrupts. Success can wait a second; errors shouldn't.
+
+### Verified
+
+- **Double click** with the network throttled (DevTools → Slow 4G): "Saving…" appears and only **one** `POST` is sent.
+- **API stopped:** an error appears and the values stay in the form.
+- **List sync:** `GET /workouts` returned `X-Cache: HIT`; after a `POST`, the next `GET` returned `X-Cache: MISS` with the new total. The API clears its cache on every write, so the list never shows stale data.
+
+---
+
+## Session 4: The lost response
+
+**The scenario:** the server saves the workout, but its answer never reaches the browser (a dropped connection, or the 10-second timeout firing during a slow start). If the form says "failed", the user clicks again → **two identical workouts**.
+
+### The decision
+
+| Option | | |
+|---|---|---|
+| A: Idempotency key | The form sends a unique key per submission; the server returns the first result for a repeated key | The robust fix; **documented for later** (milestone 09) |
+| **B: Honest UI** | No answer → *"We couldn't confirm the save. It may have gone through. Check your workouts before trying again."* | **Chosen** |
+| C: Accept duplicates | The user deletes them | Not chosen |
+
+**The rule:** *if the server answered, we know what happened; if it didn't, we don't.*
+
+| Error | Did the server answer? | UI |
+|---|---|---|
+| `ApiError` (400, 500…) | yes, definitely **not** saved | field errors or a form message |
+| `NetworkError` (timeout, connection lost) | no, **maybe** saved | "couldn't confirm" + link to the list |
+
+### Verified by faking a lost response
+
+A temporary `time.sleep(12)` in `create_workout`, **after** saving and **before** answering: the form's 10-second timeout fired and showed "couldn't confirm", and the workout (cycle, 16.6 km, 62 min) **was** in the database. (The sleep was removed afterwards.)
+
+**Test:** `WorkoutForm.test.tsx` renders the real form with a fake `createWorkout` (`vi.mock`): a `NetworkError` must show the "couldn't confirm" message and keep the input; a success must show "Workout #… saved." and reset the form. Inputs are found by their **labels**, so the test also checks that the labels work.
+
+### Bug found
+
+After adding the `NetworkError` branch, the form still showed the old message. `docker compose up --build api` starts **only the named service** (plus its dependencies), so the browser was still running an **old frontend**. `docker compose up --build` (all services) and a fresh tab fixed it.
+
+---
+
+## Next: Edit & delete
 
 _(planned)_
