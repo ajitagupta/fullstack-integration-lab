@@ -200,6 +200,13 @@ def update_workout(workout_id):
     
     return jsonify(updated)          # 200 is Flask's default
 
+@app.delete("/workouts/<int:workout_id>")
+def delete_workout(workout_id):
+    if not db.delete_workout(workout_id):
+        return error_response([{"error": "Workout not found."}], 404)
+    cache.clear()
+    return "", 204          # 204 = success, no body
+
 import csv
 import io
 

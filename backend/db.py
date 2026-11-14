@@ -36,6 +36,15 @@ def update_workout(workout_id, data):
         session.commit()
         return to_dict(workout)
 
+def delete_workout(workout_id):
+    with SessionLocal() as session:
+        workout = session.get(Workout, workout_id)
+        if workout is None:
+            return False
+        session.delete(workout)
+        session.commit()
+        return True
+    
 def build_conditions(sport, min_distance, min_duration):
     conditions = []
     if sport is not None:

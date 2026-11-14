@@ -57,3 +57,19 @@ def test_put_invalid_data_returns_400(client):
     response = client.put(f"/workouts/{workout_id}", json={"sport": "run", "distance_km": 5.0, "duration_min": 33.5})    
     assert response.status_code == 400
     assert response.get_json()["errors"][0]["field"] == "duration_min"
+
+def test_delete_removes_workout(client):
+    # TODO: create a workout (POST), DELETE it → assert 204
+    # TODO: GET it afterwards → assert 404
+    created = client.post("/workouts", json={"sport": "cycle", "distance_km": 20.0, "duration_min": 75})
+    workout_id = created.get_json()["id"]
+    response = client.delete(f"/workouts/{workout_id}")
+    assert response.status_code == 204
+
+    saved = client.get(f"/workouts/{workout_id}")
+    assert saved.status_code == 404
+
+def test_delete_unknown_id_returns_404(client):
+    # TODO: DELETE /workouts/99999 → assert 404
+    response = client.delete("/workouts/99999")
+    assert response.status_code == 404

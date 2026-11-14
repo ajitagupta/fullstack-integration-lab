@@ -36,6 +36,10 @@ export async function updateWorkout(id: number, workout: NewWorkout): Promise<Wo
 
 }
 
+export async function deleteWorkout(id: number): Promise<void> {
+  await request(`/workouts/${id}`, { method: "DELETE" });
+}
+
 export async function checkConnection(): Promise<boolean> {
   try {
     await request("/workouts?limit=1");
