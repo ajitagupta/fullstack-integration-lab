@@ -18,8 +18,8 @@ A React + TypeScript frontend and a Flask API on PostgreSQL, built in three part
 | Part | What it covers | Stages |
 |---|---|---|
 | **1. Foundations** | The base everything stands on: database, containers, the browser–API boundary, deployment, reliability | 1–4 · milestones 00–04, 09–11 |
-| **2. Features** | What you use every day: add, edit, find, see progress, import | 5–8 · milestones 05–07, 13 |
-| **3. Make it awesome** | What makes it yours: bring your Garmin/Strava data, type a sentence, live sync | 9–11 · milestones 08, 14, 15 |
+| **2. Features** | What you use every day: add, edit, delete, find, see progress, import | 5–8 · milestones 05–07, 13 |
+| **3. Make it awesome** | What makes it yours: bring your Garmin/Strava data, type a sentence, a polished look, live sync | 9–12 · milestones 08, 14, 16, 15 |
 
 Every feature crosses the same line: **browser → API → database**.
 
@@ -98,14 +98,15 @@ Every feature crosses the same line: **browser → API → database**.
 
 *What you use every day.*
 
-### 5. Add & edit 🚧
+### 5. Add & edit
 **Why it matters:** user input is the one thing the app doesn't control.
-**Key question:** *The workout was saved, but the response got lost. What does the user see?*
+**Key question:** *The workout was saved, but the response got lost. What does the user see?* An honest "We couldn't confirm the save, check your workouts", never a false "failed".
 
-- Accessible form: labels, `aria-invalid`, `aria-describedby`, errors after the first submit
-- Client validation mirrors the server's rules; the **server stays the authority**
-- Server errors mapped back to the right field (`distance_km` → Distance)
-- _Submit states, no double submits, success feedback · edit & delete_
+- `POST`, `PUT` and `DELETE` endpoints with **one shared validation**, and the same rules mirrored in the browser; the **server stays the authority**
+- Accessible form for adding and editing: labels, `aria-invalid`, `aria-describedby`, server errors mapped back to the right field (`distance_km` → Distance)
+- Saving state, no double submits, success feedback, input kept on failure
+- Delete with an inline confirmation; a `404` on delete counts as "already gone"
+- 23 backend and 14 frontend tests, including component tests with a faked API
 
 📄 [05-forms-validation](docs/05-forms-validation.md)
 
@@ -140,15 +141,45 @@ Every feature crosses the same line: **browser → API → database**.
 
 - _Import Garmin and Strava export files (GPX, FIT, CSV), with no API keys needed_
 
-### 10. Just type it 🔜
-**Why it matters:** _(milestone 08)_
+### 10. Just type it 🔜 _(milestone 08)_
+**Why it matters:** typing a sentence is faster than filling in three fields.
 
 - _"ran 5 km in 30 min" → a workout, checked by the same validation as the form_
 
-### 11. Live sync 🔜 _(milestone 15, optional)_
+### 11. Look good 🔜 _(milestone 16)_
+**Why it matters:** a clean, consistent interface is the first thing anyone notices.
+
+- _Bootstrap with a navbar, cards for workouts, consistent forms and buttons_
+- _The teal accent from the map as the app's primary colour_
+
+### 12. Live sync 🔜 _(milestone 15, optional)_
 **Why it matters:** _new activities appear without exporting anything_
 
 - _OAuth login, token refresh, webhooks for new activities_
+
+---
+
+## All milestones
+
+| # | Milestone | Stage | Status |
+|---|---|---|---|
+| 00 | Baseline: tests, journeys, API contract | 1 Store | Done |
+| 01 | PostgreSQL persistence | 1 Store | Done |
+| 02 | Docker | 2 Package | Done |
+| 03 | Browser–API boundary | 3 Connect & go live | Done |
+| 04 | First vertical slice + deployment | 3 Connect & go live | Done |
+| 05 | Add, validate, edit & delete workouts | 5 Add & edit | Done |
+| 06 | Search, filters & pagination | 6 Find | 🔜 |
+| 07 | CSV import | 8 Import | 🔜 |
+| 08 | Natural-language entry | 10 Just type it | 🔜 |
+| 09 | Diagnose failures | 4 Run reliably | 🔜 |
+| 10 | Test the integrated system | 4 Run reliably | 🔜 |
+| 11 | Delivery & deployment | 4 Run reliably | 🔜 |
+| 12 | Documentation & case study | (this README) | 🔜 |
+| 13 | Stats & charts | 7 See progress | 🔜 |
+| 14 | Garmin & Strava file import | 9 Bring your data | 🔜 |
+| 15 | Live sync *(optional)* | 12 Live sync | 🔜 |
+| 16 | Look good: Bootstrap & theme | 11 Look good | 🔜 |
 
 ---
 
