@@ -19,25 +19,33 @@ export function WorkoutForm() {
   const [submitted, setSubmitted] = useState(false);   // show errors only after the first submit
   const [serverErrors, setServerErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [success, setSuccess] = useState<string | null>(null);
 
   const errors = validateWorkout(values);              // recomputed on every render
   const show = (field: keyof WorkoutFormValues) =>
   submitted ? errors[field] ?? serverErrors[field] : undefined;
   // One handler for all fields: the input's `name` says which field to update
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
+    setSuccess(null);
     setValues({ ...values, [e.target.name]: e.target.value });
   }
 
   async function handleSubmit(e: React.FormEvent) {
   e.preventDefault();
+  if (saving) return;                 // a second click while saving does nothing
   setSubmitted(true);
   setServerErrors({});
   setFormError(null);
+  setSuccess(null);
   if (Object.keys(errors).length > 0) return;
 
+  setSaving(true);
   try {
     const created = await createWorkout(toNewWorkout(values));
-    console.log("Saved:", created);            // 05.3: success message, reset, list
+    setValues(EMPTY);
+    setSubmitted(false);
+    setSuccess(`Workout #${created.id} saved.`);
   } catch (err) {
     if (err instanceof ApiError) {
       const fields: FieldErrors = {};
@@ -57,6 +65,8 @@ export function WorkoutForm() {
     } else {
       setFormError(errorMessage(err));
     }
+  } finally{
+      setSaving(false);                 // runs after success AND after failure
   }
 }
 
@@ -115,7 +125,8 @@ export function WorkoutForm() {
         </div> 
         {formError && <p role="alert" className="field-error">{formError}</p>}
 
-      <button type="submit">Add workout</button>
+      <button type="submit" disabled={saving}>{saving ? "Saving…" : "Add workout"}</button>
+      {success && <p role="status">{success}</p>}
     </form>
     </>
   );
