@@ -26,12 +26,12 @@ export async function request(path: string, options: RequestInit = {}): Promise<
 
 
   if (!response.ok) {
-    if (response.status === 204) return null;   // no body to parse
-    
-    const body = await response.json().catch(() => null);   // the body may not be JSON
-    const errors: ApiFieldError[] = body?.errors ?? [];     // body.errors if it exists, otherwise []
-    throw new ApiError(response.status, errors);            // the status code
+    const body = await response.json().catch(() => null);
+    const errors: ApiFieldError[] = body?.errors ?? [];
+    throw new ApiError(response.status, errors);
   }
+
+  if (response.status === 204) return null;   // success, but no body to parse
 
   try {
     return await response.json();
