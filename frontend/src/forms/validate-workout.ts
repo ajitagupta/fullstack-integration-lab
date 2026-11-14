@@ -1,5 +1,5 @@
 // frontend/src/forms/validate-workout.ts
-import { SPORTS, type Sport, type NewWorkout } from "../api/workout-types";
+import { SPORTS, type Sport, type NewWorkout, type Workout } from "../api/workout-types";
 
 // What the form holds: always strings, straight from the inputs
 export type WorkoutFormValues = {
@@ -77,4 +77,13 @@ export function validateWorkout(values: WorkoutFormValues): FieldErrors {
   }
 
   return errors;
+}
+
+
+export function toFormValues(workout: Workout): WorkoutFormValues {
+  return {
+    sport: workout.sport,
+    distance: workout.distance_km === null ? "" : String(workout.distance_km),
+    duration: workout.duration_min === null ? "" : String(workout.duration_min),
+  };
 }

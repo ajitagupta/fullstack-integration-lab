@@ -3,6 +3,7 @@ import HomePage from './HomePage';
 import WorkoutsPage from './WorkoutsPage';
 import WorkoutDetailPage from './WorkoutDetailsPage';
 import { WorkoutForm } from "./forms/WorkoutForm";
+import { EditWorkoutPage } from "./EditWorkoutPage";
 import './App.css'
 import ConnectionStatus from './ConnectionStatus';
 
@@ -27,6 +28,7 @@ function App() {
           <Route path="workouts" element={<WorkoutsPage />} />
           <Route path="workouts/:id" element={<WorkoutDetailPage />} />
           <Route path="workouts/new" element={<WorkoutForm />} />
+          <Route path="workouts/:id/edit" element={<EditWorkoutPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

@@ -6,9 +6,9 @@
 
 | | |
 |---|---|
-| Status | Sessions 1–4 done · edit & delete next |
-| New route | `/workouts/new` |
-| New files | `src/forms/validate-workout.ts`, `src/forms/validate-workout.test.ts`, `src/forms/WorkoutForm.tsx`, `src/forms/WorkoutForm.test.tsx` |
+| Status | Sessions 1–5 done · delete next |
+| New routes | `/workouts/new`, `/workouts/:id/edit` |
+| New files | `src/forms/validate-workout.ts`, `src/forms/validate-workout.test.ts`, `src/forms/WorkoutForm.tsx`, `src/forms/WorkoutForm.test.tsx`, `src/EditWorkoutPage.tsx`, `tsconfig.test.json` |
 
 ---
 
@@ -146,6 +146,48 @@ After adding the `NetworkError` branch, the form still showed the old message. `
 
 ---
 
-## Next: Edit & delete
+## Session 5: Editing a workout
+
+### Backend: `PUT /workouts/<id>`
+
+| Case | Response |
+|---|---|
+| Valid data, workout exists | `200` + the updated workout |
+| Invalid data | `400` + `{"errors": [...]}`, the same messages as create |
+| Unknown ID | `404` + `"Workout not found."` |
+
+- **`PUT` replaces the whole workout.** The client sends all fields; a missing `distance_km` means "no distance". Turning a run into strength therefore clears the old distance. (Changing only some fields would be `PATCH`.)
+- **One validation for create and update:** the checks moved out of `create_workout` into `validate_workout_payload(data)`, which returns a plain error dict or `None`. Each route turns that into an HTTP response. The 18 existing tests passed unchanged after the move, proving the refactoring changed no behaviour.
+- **`db.update_workout`** loads the object, changes its attributes and commits. No `session.add()`: the object came from the session, so it's already tracked.
+- **Validation runs before the lookup**, so invalid data for an unknown ID returns `400`, not `404`.
+- **`cache.clear()` only after a real change.**
+- **3 new tests:** update + re-read, unknown ID, invalid duration.
+
+### Frontend: one form for adding and editing
+
+| | Add mode | Edit mode |
+|---|---|---|
+| Route | `/workouts/new` | `/workouts/:id/edit` |
+| Props | none | `workoutId`, `initialValues` |
+| Request | `createWorkout` (`POST`) | `updateWorkout` (`PUT`) |
+| After success | form reset + "Workout #… saved." | navigate to the details page |
+
+- **`toFormValues`** is the reverse of `toNewWorkout`: numbers → strings, `null` → `""`.
+- **`EditWorkoutPage`** loads the workout first and only then renders the form. `useState(initialValues)` reads its starting value only on the first render, so values arriving later would be ignored.
+- **Writes get no `signal`.** Cancelling a `fetch` only stops the browser from waiting; the server still saves. A cancelled write would create a lost response on purpose.
+- **The Edit link** appears only once the workout has loaded.
+- **Component test:** in edit mode, the fields start filled in, "Save changes" calls `updateWorkout(7, …)` with converted values, and `createWorkout` is never called.
+
+### Bugs found
+
+- **A swapped field:** `update_workout` set `distance_km` twice and never wrote `duration_min`. The kind of slip the update test and the edit-mode test now catch.
+- **Validation order, made visible:** a `404` test accidentally sent an invalid duration and got `400`, because the route validates before it looks up the ID.
+- **Hooks only at the top:** `useNavigate()` was first called inside the submit handler. Hooks must run at the top level of the component on every render; inside the handler, only `navigate(...)` is used.
+- **Default vs. named exports:** `import { EditWorkoutPage }` failed against `export default`. The page is now a named export.
+- **Editor type errors in tests:** `toHaveValue` was underlined although the tests passed. `tsconfig.app.json` excludes test files (needed for the Vercel build), so they belonged to no TypeScript project. A separate `tsconfig.test.json` that includes the tests and `setup.ts` fixed it.
+
+---
+
+## Next: Delete
 
 _(planned)_

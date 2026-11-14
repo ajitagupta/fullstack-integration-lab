@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { SPORTS } from "../api/workout-types";
 import { validateWorkout, toNewWorkout, type WorkoutFormValues, type FieldErrors } from "./validate-workout";
-import { createWorkout } from "../api/workout-api";
+import { createWorkout, updateWorkout } from "../api/workout-api";
 import { ApiError, NetworkError } from "../api/api-error";
 import { errorMessage } from "../api/error-message";
-import {Link} from "react-router-dom";
+import {Link, useNavigate } from "react-router-dom";
 
 const EMPTY: WorkoutFormValues = { sport: "", distance: "", duration: "" };
 
@@ -15,8 +15,14 @@ const API_TO_FORM: Record<string, keyof WorkoutFormValues> = {
   duration_min: "duration",
 };
 
-export function WorkoutForm() {
-  const [values, setValues] = useState<WorkoutFormValues>(EMPTY);
+type Props = {
+  workoutId?: number;
+  initialValues?: WorkoutFormValues;
+};
+
+export function WorkoutForm({ workoutId, initialValues = EMPTY }: Props) {
+  const isEdit = workoutId !== undefined;
+  const [values, setValues] = useState<WorkoutFormValues>(initialValues);
   const [submitted, setSubmitted] = useState(false);   // show errors only after the first submit
   const [serverErrors, setServerErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
@@ -24,6 +30,7 @@ export function WorkoutForm() {
   const [success, setSuccess] = useState<string | null>(null);
   const [unconfirmed, setUnconfirmed] = useState(false);
 
+  const navigate = useNavigate();         
   const errors = validateWorkout(values);              // recomputed on every render
   const show = (field: keyof WorkoutFormValues) =>
   submitted ? errors[field] ?? serverErrors[field] : undefined;
@@ -45,10 +52,18 @@ export function WorkoutForm() {
 
   setSaving(true);
   try {
-    const created = await createWorkout(toNewWorkout(values));
-    setValues(EMPTY);
-    setSubmitted(false);
-    setSuccess(`Workout #${created.id} saved.`);
+    const payload = toNewWorkout(values);
+    const created = isEdit
+      ? await updateWorkout(workoutId, payload)
+      : await createWorkout(payload);
+    if (isEdit) {
+      navigate(`/workouts/${created.id}`);
+    } else {
+      setValues(EMPTY);
+      setSubmitted(false);
+      setSuccess(`Workout #${created.id} saved.`);
+  }
+
   } catch (err) {
     if (err instanceof ApiError) {
       const fields: FieldErrors = {};
@@ -77,7 +92,7 @@ export function WorkoutForm() {
 
   return (
     <>
-    <h1>Add workout</h1>
+    <h1>{isEdit ? "Edit workout" : "Add workout"}</h1>
     <form onSubmit={handleSubmit} noValidate>
       <div>
         <label htmlFor="sport">Sport</label>
@@ -135,7 +150,7 @@ export function WorkoutForm() {
             <Link to="/workouts">Check your workouts</Link> before trying again.
           </p>
         )}
-      <button type="submit" disabled={saving}>{saving ? "Saving…" : "Add workout"}</button>
+      <button type="submit" disabled={saving}>{saving ? "Saving…" : isEdit ? "Save changes" : "Add workout"}</button>
       {success && <p role="status">{success}</p>}
     </form>
     </>

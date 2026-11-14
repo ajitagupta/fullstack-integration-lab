@@ -23,6 +23,19 @@ export async function createWorkout(workout: NewWorkout): Promise<Workout> {
   return parseWorkout(data);
 }
 
+export async function updateWorkout(id: number, workout: NewWorkout): Promise<Workout> {
+  // TODO: the same as createWorkout, but:
+  //   - the URL includes the id (template string with backticks)
+  //   - the method is "PUT"
+  const data = await request(`/workouts/${id}`, {
+    method: "PUT",                                // which HTTP method creates something?
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(workout),
+  });
+  return parseWorkout(data);
+
+}
+
 export async function checkConnection(): Promise<boolean> {
   try {
     await request("/workouts?limit=1");

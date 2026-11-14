@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { getWorkout } from './api/workout-api';
 import type { Workout } from './api/workout-types';
 import { errorMessage } from './api/error-message';
@@ -38,6 +38,7 @@ function WorkoutDetailPage() {
         </ul>
       )}
       {!workout && !error && <p role="status">Loading workout…</p>}
+      {workout && <Link to={`/workouts/${id}/edit`}>Edit</Link>}
     </>
   );
 }

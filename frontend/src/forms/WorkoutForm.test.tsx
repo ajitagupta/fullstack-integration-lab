@@ -3,11 +3,11 @@ import { render, screen, cleanup } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { WorkoutForm } from "./WorkoutForm";
-import { createWorkout } from "../api/workout-api";
+import { createWorkout, updateWorkout } from "../api/workout-api";
 import { NetworkError } from "../api/api-error";
 
 // Replace the real API call with a fake we control
-vi.mock("../api/workout-api", () => ({ createWorkout: vi.fn() }));
+vi.mock("../api/workout-api", () => ({ createWorkout: vi.fn(), updateWorkout: vi.fn() }));
 
 afterEach(() => {
   cleanup();             // remove the rendered form after each test
@@ -50,4 +50,25 @@ describe("WorkoutForm", () => {
     expect(screen.getByLabelText("Distance (km)")).toHaveValue(null);   // input reset
   });
 
+});
+
+it("edits an existing workout with PUT", async () => {
+  vi.mocked(updateWorkout).mockResolvedValue({ id: 7, sport: "run", distance_km: 5, duration_min: 45 });
+  const user = userEvent.setup();
+  render(
+    <MemoryRouter>
+      <WorkoutForm workoutId={7} initialValues={{ sport: "run", distance: "5", duration: "30" }} />
+    </MemoryRouter>
+  );
+
+  // the form starts filled in, in edit mode
+  expect(screen.getByLabelText("Duration (min)")).toHaveValue(30);
+
+  const duration = screen.getByLabelText("Duration (min)");
+  await user.clear(duration);
+  await user.type(duration, "45");
+  await user.click(screen.getByRole("button", { name: "Save changes" }));
+
+  expect(updateWorkout).toHaveBeenCalledWith(7, { sport: "run", distance_km: 5, duration_min: 45 });
+  expect(createWorkout).not.toHaveBeenCalled();
 });
