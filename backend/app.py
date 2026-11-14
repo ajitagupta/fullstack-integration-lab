@@ -82,38 +82,49 @@ def get_workouts():
     resp.headers["X-Cache"] = "MISS"
     return resp
 
-@app.route("/workouts", methods=["POST"])
-def create_workout():
-    data = request.get_json(silent=True)
+def validate_workout_payload(data):
+
     if data is None:
-        return error_response([{"error": "Invalid request body or empty body. Must be JSON."}])
+        return {"error": "Invalid request body or empty body. Must be JSON."}
     if data.get("sport") is None or data.get("sport") == "":
-        return error_response([{"field": "sport", "error": "The key sport is missing or empty. Must be swim, run, badminton, cycle, strength, or rest."}])
+        return {"field": "sport", "error": "The key sport is missing or empty. Must be swim, run, badminton, cycle, strength, or rest."}
 
     allowed_sports = ["swim", "run", "badminton", "cycle", "strength", "rest"]
     sport = data["sport"]
     if sport not in allowed_sports:
-        return error_response([{"field": "sport", "error": "The key sport is invalid. Must be swim, run, badminton, cycle, strength, or rest."}])
+        return {"field": "sport", "error": "The key sport is invalid. Must be swim, run, badminton, cycle, strength, or rest."}
 
     optional_distance = data.get("distance_km")
     optional_duration = data.get("duration_min")
     if optional_duration is None and (sport in ["run", "swim", "cycle", "badminton", "strength"]):
-        return error_response([{"field": "duration_min", "error": "The key duration_min is missing."}])
+        return {"field": "duration_min", "error": "The key duration_min is missing."}
     if optional_distance is None and (sport in ["run", "swim", "cycle"]):
-        return error_response([{"field": "distance_km", "error": "The key distance_km is missing."}])
+        return {"field": "distance_km", "error": "The key distance_km is missing."}
 
     if optional_duration is not None and not isinstance(optional_duration, (int, float)):
-        return error_response([{"field": "duration_min", "error": "The key duration_min must be a number."}])
+        return {"field": "duration_min", "error": "The key duration_min must be a number."}
     if optional_distance is not None and not isinstance(optional_distance, (int, float)):
-        return error_response([{"field": "distance_km", "error": "The key distance_km must be a number."}])
+        return {"field": "distance_km", "error": "The key distance_km must be a number."}
 
     if isinstance(optional_duration, float) and not optional_duration.is_integer():
-        return error_response([{"field": "duration_min", "error": "The key duration_min must be a whole number."}])
+        return {"field": "duration_min", "error": "The key duration_min must be a whole number."}
 
     if optional_duration is not None and optional_duration < 0:
-        return error_response([{"field": "duration_min", "error": "The key duration_min must be a positive number or 0."}])
+        return {"field": "duration_min", "error": "The key duration_min must be a positive number or 0."}
     if optional_distance is not None and optional_distance < 0:
-        return error_response([{"field": "distance_km", "error": "The key distance_km must be a positive number or 0."}])
+        return {"field": "distance_km", "error": "The key distance_km must be a positive number or 0."}
+
+    return None
+
+@app.route("/workouts", methods=["POST"])
+def create_workout():
+
+    data = request.get_json(silent=True)
+    if data is None:
+        return error_response([{"error": "Invalid request body or empty body. Must be JSON."}])
+    error = validate_workout_payload(data)
+    if error:
+        return error_response([error])
 
     cache.clear()          # data changed — stale reads must go
 
@@ -172,6 +183,22 @@ def get_workout_by_id(workout_id):
         return error_response([{"error": "Workout not found."}], 404)
 
     return jsonify(workout)
+
+@app.put("/workouts/<int:workout_id>")
+def update_workout(workout_id):
+    data = request.get_json(silent=True)
+    if data is None:
+        return error_response([{"error": "Invalid request body or empty body. Must be JSON."}])
+    err = validate_workout_payload(data)
+    if err is not None:
+        return error_response([err])
+    updated = db.update_workout(workout_id, data)
+    if updated is None:
+        return error_response([{"error": "Workout not found."}], 404)
+
+    cache.clear()
+    
+    return jsonify(updated)          # 200 is Flask's default
 
 import csv
 import io

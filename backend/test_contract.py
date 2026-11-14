@@ -34,3 +34,26 @@ def test_non_numeric_csv_value_returns_row_error(client):
     response = client.post("/workouts/upload", data=data, content_type="multipart/form-data")
     assert response.status_code == 400
     assert response.get_json()["errors"] == [{"row": 1, "field": "distance_km", "error": "The key distance_km must be a number."}]
+
+def test_put_updates_workout(client):
+    created = client.post("/workouts", json={"sport": "run", "distance_km": 5.0, "duration_min": 30})
+    workout_id = created.get_json()["id"]
+
+    response = client.put(f"/workouts/{workout_id}", json={"sport": "run", "distance_km": 5.0, "duration_min": 45})
+    assert response.status_code == 200
+    assert response.get_json()["duration_min"] == 45
+
+    saved = client.get(f"/workouts/{workout_id}")
+    assert saved.get_json()["duration_min"] == 45
+
+def test_put_unknown_id_returns_404(client):
+    # TODO: PUT /workouts/99999 with valid data → assert 404
+    response = client.put("/workouts/99999", json={"sport": "run", "distance_km": 5.0, "duration_min": 33})
+    assert response.status_code == 404
+
+def test_put_invalid_data_returns_400(client):
+    created = client.post("/workouts", json={"sport": "run", "distance_km": 5.0, "duration_min": 30})
+    workout_id = created.get_json()["id"]
+    response = client.put(f"/workouts/{workout_id}", json={"sport": "run", "distance_km": 5.0, "duration_min": 33.5})    
+    assert response.status_code == 400
+    assert response.get_json()["errors"][0]["field"] == "duration_min"

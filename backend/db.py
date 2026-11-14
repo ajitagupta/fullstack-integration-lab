@@ -25,6 +25,17 @@ def get_workout_by_id(workout_id):
             return None
         return to_dict(workout)                              # a dict, or None if not found
 
+def update_workout(workout_id, data):
+    with SessionLocal() as session:
+        workout = session.get(Workout, workout_id)
+        if workout is None:
+            return None
+        workout.sport = data["sport"]
+        workout.duration_min = data.get("duration_min")
+        workout.distance_km = data.get("distance_km")
+        session.commit()
+        return to_dict(workout)
+
 def build_conditions(sport, min_distance, min_duration):
     conditions = []
     if sport is not None:
