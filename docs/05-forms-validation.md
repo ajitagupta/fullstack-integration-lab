@@ -6,7 +6,7 @@
 
 | | |
 |---|---|
-| Status | Sessions 1–5 done · delete next |
+| Status | ✅ Done (6 sessions) |
 | New routes | `/workouts/new`, `/workouts/:id/edit` |
 | New files | `src/forms/validate-workout.ts`, `src/forms/validate-workout.test.ts`, `src/forms/WorkoutForm.tsx`, `src/forms/WorkoutForm.test.tsx`, `src/EditWorkoutPage.tsx`, `tsconfig.test.json` |
 
@@ -188,6 +188,39 @@ After adding the `NetworkError` branch, the form still showed the old message. `
 
 ---
 
-## Next: Delete
+## Session 6: Deleting a workout
 
-_(planned)_
+| Layer | What |
+|---|---|
+| DB | `delete_workout`: load, `session.delete()`, commit, return `True`/`False` |
+| Route | `DELETE /workouts/<id>` → **`204 No Content`**, or `404`; `cache.clear()` after a real delete |
+| Tests | delete → `GET` gives `404`; unknown ID → `404` |
+| Client | `request()` returns `null` for `204` instead of parsing an empty body |
+| UI | "Delete" on the details page → "Delete this workout? Yes, delete / Cancel" → back to the list |
+
+**A `404` on delete counts as success.** If the delete went through but the answer got lost, a retry finds nothing to delete. The goal, "this workout no longer exists", is reached, so the UI goes back to the list instead of showing an error.
+
+**Writes are confirmed in two steps,** with an inline question instead of a browser popup: accessible, and the user can cancel.
+
+### Bugs found
+
+- **`204` has no body:** `request()` always parsed JSON, so a successful delete would have failed as "invalid JSON". Handled explicitly now.
+- **`405 Method Not Allowed` in the browser while `pytest` passed:** `pytest` imports the code from the folder; the Docker container runs a copy from its last build. Rebuilding (`docker compose up --build`) fixed it.
+- Python has no `!`; it's `not`. And a URL without the `f` prefix sends `{workout_id}` literally.
+
+### Polish: consistent actions and a clean stylesheet
+
+- **Edit stays a link, Delete stays a button,** because Edit goes to another page and Delete acts on this one. Screen readers announce them accordingly, and the link can open in a new tab. Both share one CSS class (`.action`): the same shape and teal outline. Only the irreversible "Yes, delete" is red (`.action.danger`). `:focus-visible` gives keyboard users a clear outline.
+- **`App.css` cleaned up:** about 200 lines of unused Vite starter styles removed (`.hero`, `.counter`, `#next-steps`…); 35 lines left, each used by the app. Clicking through every page afterwards showed no visual change. `index.css` is still the Vite starter and will be replaced by Bootstrap in milestone 16.
+
+---
+
+## Milestone 05 summary
+
+| | |
+|---|---|
+| Endpoints | `POST`, `PUT`, `DELETE /workouts` |
+| Shared validation | `validate_workout_payload` (server), `validateWorkout` (client), same rules |
+| UI | add, edit and delete; saving state; double-submit guard; honest "couldn't confirm" on lost responses; consistent action buttons |
+| Tests | backend 23 · frontend 14 (8 validation, 3 form, 2 types, 1 card) |
+| Decided for later | idempotency keys (milestone 09) |
