@@ -2,8 +2,9 @@ import { useState } from "react";
 import { SPORTS } from "../api/workout-types";
 import { validateWorkout, toNewWorkout, type WorkoutFormValues, type FieldErrors } from "./validate-workout";
 import { createWorkout } from "../api/workout-api";
-import { ApiError } from "../api/api-error";
+import { ApiError, NetworkError } from "../api/api-error";
 import { errorMessage } from "../api/error-message";
+import {Link} from "react-router-dom";
 
 const EMPTY: WorkoutFormValues = { sport: "", distance: "", duration: "" };
 
@@ -21,6 +22,7 @@ export function WorkoutForm() {
   const [formError, setFormError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
+  const [unconfirmed, setUnconfirmed] = useState(false);
 
   const errors = validateWorkout(values);              // recomputed on every render
   const show = (field: keyof WorkoutFormValues) =>
@@ -38,6 +40,7 @@ export function WorkoutForm() {
   setServerErrors({});
   setFormError(null);
   setSuccess(null);
+  setUnconfirmed(false);
   if (Object.keys(errors).length > 0) return;
 
   setSaving(true);
@@ -62,10 +65,12 @@ export function WorkoutForm() {
       if (Object.keys(fields).length === 0) {                      
         setFormError(general ?? errorMessage(err));
       }
+    } else if (err instanceof NetworkError) {
+      setUnconfirmed(true)
     } else {
       setFormError(errorMessage(err));
     }
-  } finally{
+  } finally {
       setSaving(false);                 // runs after success AND after failure
   }
 }
@@ -124,7 +129,12 @@ export function WorkoutForm() {
         {show("duration") && <p id="duration-error" className="field-error">{show("duration")}</p>}
         </div> 
         {formError && <p role="alert" className="field-error">{formError}</p>}
-
+        {unconfirmed && (
+          <p role="alert" className="field-error">
+            We couldn't confirm the save. It may have gone through.{" "}
+            <Link to="/workouts">Check your workouts</Link> before trying again.
+          </p>
+        )}
       <button type="submit" disabled={saving}>{saving ? "Saving…" : "Add workout"}</button>
       {success && <p role="status">{success}</p>}
     </form>
