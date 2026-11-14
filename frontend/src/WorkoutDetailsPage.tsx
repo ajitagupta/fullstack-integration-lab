@@ -64,6 +64,7 @@ function WorkoutDetailPage() {
           <button className="action" onClick={() => setConfirming(false)}>Cancel</button>
         </p>
       )}
+      {deleteError && <p role="alert">{deleteError}</p>}
     </>
   );
 }
