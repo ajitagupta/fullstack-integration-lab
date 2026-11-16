@@ -59,8 +59,6 @@ def test_put_invalid_data_returns_400(client):
     assert response.get_json()["errors"][0]["field"] == "duration_min"
 
 def test_delete_removes_workout(client):
-    # TODO: create a workout (POST), DELETE it → assert 204
-    # TODO: GET it afterwards → assert 404
     created = client.post("/workouts", json={"sport": "cycle", "distance_km": 20.0, "duration_min": 75})
     workout_id = created.get_json()["id"]
     response = client.delete(f"/workouts/{workout_id}")
@@ -70,6 +68,34 @@ def test_delete_removes_workout(client):
     assert saved.status_code == 404
 
 def test_delete_unknown_id_returns_404(client):
-    # TODO: DELETE /workouts/99999 → assert 404
     response = client.delete("/workouts/99999")
     assert response.status_code == 404
+
+def test_sort_descending_with_tiebreaker(client):
+    a = client.post("/workouts", json={"sport": "run", "distance_km": 5.0, "duration_min": 30}).get_json()["id"]
+    b = client.post("/workouts", json={"sport": "run", "distance_km": 10.0, "duration_min": 60}).get_json()["id"]
+    c = client.post("/workouts", json={"sport": "cycle", "distance_km": 10.0, "duration_min": 25}).get_json()["id"]
+
+    response = client.get("/workouts?sort=-distance_km")
+    ids = [w["id"] for w in response.get_json()["workouts"]]
+
+    assert ids == [b, c, a]      # 10 km before 5 km; the two 10 km ones ordered by id
+
+def test_limit_out_of_range_returns_400(client):
+    response = client.get("/workouts?limit=0")
+    assert response.status_code == 400
+    assert response.get_json()["errors"][0]["field"] == "limit"
+
+    response = client.get("/workouts?limit=101")
+    assert response.status_code == 400
+    assert response.get_json()["errors"][0]["field"] == "limit"
+
+def test_unknown_sport_returns_400(client):
+    response = client.get("/workouts?sport=football")
+    assert response.status_code == 400
+    assert response.get_json()["errors"][0]["field"] == "sport"
+
+def test_invalid_sort_returns_400(client):
+    response = client.get("/workouts?sort=colour")
+    assert response.status_code == 400
+    assert response.get_json()["errors"][0]["field"] == "sort"

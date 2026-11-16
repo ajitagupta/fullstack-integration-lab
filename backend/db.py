@@ -8,6 +8,12 @@ load_dotenv()
 engine = create_engine(os.environ["DATABASE_URL"], pool_pre_ping=True)            # from DATABASE_URL, as in check_db.py
 SessionLocal = sessionmaker(engine)    # a factory: SessionLocal() gives you a new session
 
+SORT_COLUMNS = {
+    "id": Workout.id,
+    "distance_km": Workout.distance_km,
+    "duration_min": Workout.duration_min,
+}
+
 def to_dict(workout):
     return {"id": workout.id, "sport": workout.sport, "distance_km": workout.distance_km, "duration_min": workout.duration_min}                      # id, sport, distance_km, duration_min from the object
 
@@ -55,9 +61,19 @@ def build_conditions(sport, min_distance, min_duration):
         conditions.append(Workout.duration_min >= min_duration)
     return conditions
 
-def search_workouts(sport, min_distance, min_duration, limit, offset):
+def search_workouts(sport, min_distance, min_duration, limit, offset, sort="id"):
     conditions = build_conditions(sport, min_distance, min_duration)
-    stmt = select(Workout).where(*conditions).order_by(Workout.id).limit(limit).offset(offset)
+    descending = sort.startswith("-")
+    column = SORT_COLUMNS[sort[1:] if descending else sort]
+    order = column.desc() if descending else column.asc()
+    stmt = (
+        select(Workout)
+        .where(*conditions)
+        .order_by(order.nulls_last(), Workout.id)     # id = the tie-breaker
+        .limit(limit)
+        .offset(offset)
+    )    
+    conditions = build_conditions(sport, min_distance, min_duration)
     with SessionLocal() as session:
         workouts = session.scalars(stmt).all()
         return [to_dict(w) for w in workouts]              # a list of dicts, using to_dict()

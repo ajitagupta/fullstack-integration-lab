@@ -9,6 +9,9 @@ from flask_cors import CORS
 app = Flask(__name__)
 
 CORS(app, origins=os.environ.get("CORS_ORIGINS", "http://localhost:5173").split(","))
+MAX_LIMIT = 100
+ALLOWED_SPORTS = ["swim", "run", "badminton", "cycle", "strength", "rest"]
+SORT_FIELDS = ["id", "distance_km", "duration_min"]
 
 def error_response(errors, status=400):
     return jsonify({"errors": errors}), status
@@ -33,6 +36,11 @@ if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
 @app.get('/workouts')
 def get_workouts():
     sport = request.args.get("sport")
+
+    # after reading sport:
+    if sport is not None and sport not in ALLOWED_SPORTS:
+        return error_response([{"field": "sport", "error": "The query parameter sport must be one of: swim, run, badminton, cycle, strength, rest."}])
+
     min_distance = request.args.get("min_distance")
     try:
         min_distance = float(min_distance) if min_distance is not None else None
@@ -48,7 +56,7 @@ def get_workouts():
 
     limit = request.args.get("limit")
     try:
-        limit = int(limit) if limit is not None else 2
+        limit = int(limit) if limit is not None else 20
     except ValueError:
         return error_response([{"field": "limit", "error": "The query parameter limit must be a whole number."}])
 
@@ -57,6 +65,17 @@ def get_workouts():
         offset = int(offset) if offset is not None else 0
     except ValueError:
         return error_response([{"field": "offset", "error": "The query parameter offset must be a whole number."}])
+
+    # after parsing limit and offset:
+    if not (1 <= limit <= MAX_LIMIT):
+        return error_response([{"field": "limit", "error": f"The query parameter limit must be between 1 and {MAX_LIMIT}."}])
+    if offset < 0:
+        return error_response([{"field": "offset", "error": "The query parameter offset must be 0 or greater."}])
+
+    sort = request.args.get("sort", "id")
+    field = sort[1:] if sort.startswith("-") else sort      # "-distance_km" → "distance_km"
+    if field not in SORT_FIELDS:
+        return error_response([{"field": "sort", "error": "The query parameter sort must be id, distance_km or duration_min, with a leading '-' for descending order."}])
 
     # --- cache check ---
     key = cache.make_key("workouts:list", request.args.to_dict())
@@ -67,7 +86,7 @@ def get_workouts():
         return resp
 
     # --- cache miss: do the real work ---
-    workouts = db.search_workouts(sport, min_distance, min_duration, limit, offset)
+    workouts = db.search_workouts(sport, min_distance, min_duration, limit, offset, sort)
     total = db.count_workouts(sport, min_distance, min_duration)
 
     result = {
@@ -89,9 +108,8 @@ def validate_workout_payload(data):
     if data.get("sport") is None or data.get("sport") == "":
         return {"field": "sport", "error": "The key sport is missing or empty. Must be swim, run, badminton, cycle, strength, or rest."}
 
-    allowed_sports = ["swim", "run", "badminton", "cycle", "strength", "rest"]
     sport = data["sport"]
-    if sport not in allowed_sports:
+    if sport not in ALLOWED_SPORTS:
         return {"field": "sport", "error": "The key sport is invalid. Must be swim, run, badminton, cycle, strength, or rest."}
 
     optional_distance = data.get("distance_km")
@@ -233,8 +251,7 @@ def validate_data(data):
     distance_km = data.get("distance_km")
     duration_min = data.get("duration_min")
 
-    allowed_sports = ["swim", "run", "badminton", "cycle", "strength", "rest"]
-    if sport not in allowed_sports:
+    if sport not in ALLOWED_SPORTS:
         return {"field": "sport", "error": "The key sport is invalid. Must be swim, run, badminton, cycle, strength, or rest."}
     if distance_km is not None and not isinstance(distance_km, (int, float)):
         return {"field": "distance_km", "error": "The key distance_km must be a number."}
