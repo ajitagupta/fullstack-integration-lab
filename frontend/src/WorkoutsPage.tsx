@@ -19,12 +19,14 @@ function WorkoutsPage() {
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [searchParams, setSearchParams] = useSearchParams();
   const [total, setTotal] = useState(0);  
+  const [reloadKey, setReloadKey] = useState(0);
 
   const sport = searchParams.get("sport") ?? "";
   const sort = searchParams.get("sort") ?? "id";
   const page = Number(searchParams.get("page") ?? "1");
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const hasFilter = sport !== "";
 
   function updateParam(name: string, value: string) {
     const next = new URLSearchParams(searchParams);
@@ -47,7 +49,7 @@ function WorkoutsPage() {
     setSearchParams(next);
   }
 
-  function load(signal?: AbortSignal) {
+  function load(signal: AbortSignal) {
     setStatus("loading");                       // a new attempt starts
     getWorkouts({ sport, sort, page }, signal)
       .then((result) => {
@@ -66,7 +68,7 @@ function WorkoutsPage() {
     const controller = new AbortController();
     load(controller.signal);
     return () => controller.abort();
-  }, [sport, sort, page]);
+  }, [sport, sort, page, reloadKey]);
 
   return (
     <>
@@ -91,12 +93,30 @@ function WorkoutsPage() {
       {status === "error" && (
         <div role="alert">
           <p>{error}</p>
-          <button onClick={() => load()}>Try again</button>
+          <button onClick={() => setReloadKey((k) => k + 1)}>Try again</button>
         </div>
       )}
-      {status === "success" && workouts.length === 0 && (
-        <p>No workouts yet - add your first one.</p>
+      {status === "success" && workouts.length === 0 && total === 0 && !hasFilter && (
+        <p role="status">No workouts yet - add your first one.</p>
       )}
+      {status === "success" && workouts.length === 0 && total === 0 && hasFilter && (
+        <p role="status">
+          No {sport} workouts found.{" "}
+          <button onClick={() => updateParam("sport", "")}>Clear filter</button>
+        </p>
+      )}
+      {status === "success" && workouts.length === 0 && total > 0 && (
+        <p role="status">
+          Page {page} doesn't exist.{" "}
+          <button onClick={() => goToPage(1)}>Go to page 1</button>
+        </p>
+      )}
+      {status === "success" && workouts.map((workout) => (
+        <p key={workout.id}>
+          <Link to={`/workouts/${workout.id}`}>{workout.sport}</Link>
+          {" "}· {workout.distance_km ?? "—"} km · {workout.duration_min ?? "—"} min
+        </p>
+      ))}
       {status === "success" && workouts.map((workout) => (
         <p key={workout.id}>
           <Link to={`/workouts/${workout.id}`}>{workout.sport}</Link> · {workout.distance_km ?? "—"} km
