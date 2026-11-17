@@ -6,8 +6,9 @@
 
 | | |
 |---|---|
-| Status | Session 1 of 4 done |
+| Status | Sessions 1–2 of 4 done |
 | Endpoint | `GET /workouts` |
+| Page | `/workouts?sport=swim&sort=-duration_min&page=2` |
 
 ---
 
@@ -52,7 +53,38 @@ Example: `GET /workouts?sport=run&sort=-distance_km&limit=5` returns the five lo
 
 ## Session 2: Filter state in the URL
 
-_(next)_
+**The idea:** the URL *is* the state. The page reads its filters **from** the address bar and writes changes **into** it. So `/workouts?sport=swim&sort=-duration_min&page=2` can be bookmarked, shared, reloaded and navigated with back/forward, and it always shows the same list.
+
+### How it fits together
+
+| Piece | What it does |
+|---|---|
+| `getWorkouts({ sport, sort, page })` | Builds the API query with `URLSearchParams`; turns the page into `limit`/`offset` in one place: `offset = (page − 1) × PAGE_SIZE` |
+| `useSearchParams()` | Reads `sport`, `sort` and `page` from the URL, with defaults via `??` |
+| The effect's dependencies `[sport, sort, page]` | Any URL change, including back/forward, reloads the list |
+| `updateParam(name, value)` | For filters: keeps the other parameters, sets or removes the changed one, and **resets the page** |
+| `goToPage(n)` | For paging: keeps all filters, changes only `page` (page 1 = no parameter) |
+| Pagination | "Page 2 of 5 · 23 workouts", Previous/Next disabled at the ends, inside `<nav aria-label="Pagination">` |
+
+### Decisions
+
+- **Users think in pages, the API in offsets.** The conversion happens in exactly one function, so the UI never deals with offsets.
+- **A new filter resets the page to 1.** Otherwise page 4 of "all sports" could become an empty page 4 of "swim".
+- **Empty values are removed from the URL,** not written as `sport=`, so "All sports" and page 1 keep the URL clean.
+- **The frontend chooses its own page size** (`PAGE_SIZE = 10`) within the API's maximum of 100. The API's default of 20 is only for clients that don't send a `limit`.
+- **One helper per kind of change** (`updateParam`, `goToPage`), so the "keep other filters" and "reset page" rules live in one place each.
+
+### Verified
+
+- Typed URLs by hand (`?sport=run`, `?sort=-distance_km`, `?page=2`): the page reads the URL correctly.
+- The selects write into the URL; **back** returns to the previous filter; Next adds `&page=2`; changing the sort on page 2 goes back to page 1.
+
+### Bugs found
+
+- **The query object in the wrong place:** `{ sport, sort, page }` first ended up as `load`'s parameters instead of in the `getWorkouts` call. `load` doesn't need parameters: it reads the component's variables directly.
+- **A name used twice:** the API response in `.then((page) => …)` would have hidden the `page` number. Renamed to `result`.
+- **Controls in the wrong component:** the selects were first placed inside `Welcome`, which can't see `WorkoutsPage`'s variables. Moved into `WorkoutsPage`.
+- **"Can't reach the server"** while only the frontend was running: the error state worked as designed; the API simply wasn't started.
 
 ## Session 3: Stale responses
 

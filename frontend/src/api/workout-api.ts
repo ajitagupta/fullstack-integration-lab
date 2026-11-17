@@ -4,8 +4,25 @@ import { parseWorkout, parseWorkoutList, type NewWorkout, type Workout, type Wor
 import { NetworkError } from "./api-error";
 
 
-export async function getWorkouts(signal?: AbortSignal): Promise<WorkoutListResponse> {
-  const data = await request(`/workouts`, { signal });
+export const PAGE_SIZE = 10;
+
+export type WorkoutQuery = {
+  sport?: string;     // "" or missing = all sports
+  sort?: string;      // e.g. "-distance_km"
+  page: number;       // 1-based, as users see it
+};
+
+export async function getWorkouts(query: WorkoutQuery, signal?: AbortSignal): Promise<WorkoutListResponse> {
+  const params = new URLSearchParams();
+  params.set("limit", String(PAGE_SIZE));
+  params.set("offset", String((query.page - 1) * PAGE_SIZE));
+  if (query.sport) {
+    params.set("sport", query.sport)
+  }
+  if (query.sort) {
+    params.set("sort", query.sort)
+  }
+  const data = await request(`/workouts?${params}`, { signal });
   return parseWorkoutList(data);
 }
 
