@@ -1,5 +1,5 @@
-from sqlalchemy import CheckConstraint, Float, Integer, String
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy import CheckConstraint, Float, Index, Integer, String, text
 
 class Base(DeclarativeBase):
     pass
@@ -17,5 +17,9 @@ class Workout(Base):
         CheckConstraint("distance_km is NULL or distance_km >= 0", name="ck_workouts_distance_non_negative"),
         CheckConstraint("duration_min is NULL or duration_min >= 0", name="ck_workouts_duration_non_negative"),
         CheckConstraint("sport NOT in ('run', 'swim', 'cycle') OR distance_km IS NOT NULL", name="ck_workouts_distance_required"),
-        CheckConstraint("sport in ('rest') OR duration_min IS NOT NULL", name="ck_workouts_duration_required")
+        CheckConstraint("sport in ('rest') OR duration_min IS NOT NULL", name="ck_workouts_duration_required"),
+        Index("ix_workouts_sport_distance",
+          "sport", text("distance_km DESC NULLS LAST"), "id"),
+        Index("ix_workouts_sport_duration",
+          "sport", text("duration_min DESC NULLS LAST"), "id"),
     )

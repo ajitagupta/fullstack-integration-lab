@@ -6,7 +6,7 @@
 
 | | |
 |---|---|
-| Status | Sessions 1–3 of 4 done |
+| Status | Done (4 sessions) |
 | Endpoint | `GET /workouts` |
 | Page | `/workouts?sport=swim&sort=-duration_min&page=2` |
 
@@ -134,4 +134,62 @@ Example: `GET /workouts?sport=run&sort=-distance_km&limit=5` returns the five lo
 
 ## Session 4: Indexes and EXPLAIN
 
-_(planned)_
+**The question:** how does PostgreSQL find the rows for `GET /workouts?sport=swim&sort=-distance_km`, and does that still work at 100,000 rows?
+
+**The method:** measure first, then index. Every plan below comes from `EXPLAIN ANALYZE` in `psql` against the local Docker database, which was filled with 100,000 generated rows (`generate_series`) for the test and cleaned up afterwards.
+
+### Reading a plan
+
+- Read from the **innermost step outwards**: that step runs first.
+- `Seq Scan` reads every row; `Index Scan` jumps to the matching ones; `Index Only Scan` doesn't even touch the table.
+- `Filter` + `Rows Removed by Filter` = rows read and thrown away. `Index Cond` = rows the index selected directly.
+- `Buffers` = pages (8 kB each) touched. A more honest measure than time on a small machine.
+- `rows=` estimated vs actual: a large gap means outdated statistics. `ANALYZE` refreshes them.
+
+### Measurements
+
+| Query | 47 rows | 100,000 rows, no index | 100,000 rows, with index |
+|---|---|---|---|
+| `sport=swim`, sort `id`, page 1 | Seq Scan, 0.4 ms | **0.03 ms** (primary key index, stops after 10 matches) | unchanged |
+| `sport=swim`, sort `-distance_km`, page 1 | — | Seq Scan + top-N heapsort, 722 pages, **6.3 ms** | Index Scan, no Sort, 13 pages, **0.08 ms** |
+| `count(*)` for `sport=swim` (pagination total) | — | Seq Scan, 722 pages, **6.0 ms** | Index Only Scan, 87 pages, **2.6 ms** |
+| `sport=run`, sort `-duration_min`, page 1 | — | — | Index Scan, no Sort, **0.09 ms** |
+
+### The indexes
+
+```python
+Index("ix_workouts_sport_distance", "sport", text("distance_km DESC NULLS LAST"), "id"),
+Index("ix_workouts_sport_duration", "sport", text("duration_min DESC NULLS LAST"), "id"),
+```
+
+Declared in the model's `__table_args__`, next to the check constraints, and created by an Alembic migration (`add sport/sort indexes`). The migration was tested in both directions (`upgrade` → `downgrade -1` → `upgrade`), and reaches Neon with the next deploy.
+
+### Decisions
+
+- **Measure before indexing.** The default list (`sport=swim`, sort by `id`) was already fast at 100,000 rows, thanks to the primary key index: PostgreSQL walks ids in order and stops after 10 matches. An extra index there would only cost writes.
+- **One index per query shape the UI sends:** filter column first, then the sort columns in the same order and direction as the query (`DESC NULLS LAST`), then `id` as the tie-breaker. Then PostgreSQL reads the first 10 entries and stops: no full scan, no sort.
+- **Small tables don't use indexes.** At 47 rows the planner still picks `Seq Scan`, and that's correct: one page read is cheaper than an index lookup. The indexes take effect as the table grows.
+- **Known limits:**
+  - **The count improves but doesn't disappear:** it still visits every matching entry, so it grows with the data. Cached or estimated totals would be the next step, and aren't worth it at this size.
+  - **"All sports, longest first" can't use these indexes**, because `sport` is their first column. Accepted for now.
+  - **Each index makes writes slightly slower** and uses disk space. Two indexes for two real query shapes is a reasonable price.
+- **Indexes belong in the model, not only in the database.** Otherwise a later `alembic revision --autogenerate` sees indexes the model doesn't know about and proposes dropping them.
+
+### Bugs found
+
+- **Python in the psql window:** part of the model code was pasted into `psql`, which kept it as an unfinished statement (prompt `workouts-#` instead of `workouts=#`). The next `DROP INDEX` was appended to it and failed. Ctrl+C or `\r` clears the buffer.
+- **An empty migration:** the first `--autogenerate` reported no changes, because the `api` container still had the old `models.py`. The backend code is copied into the image at build time, not mounted. After `docker compose up -d --build api` both indexes were detected.
+- **A migration only inside the container:** for the same reason, the generated file existed only under `/app/migrations` in the container. It was copied to the repo with `docker compose cp`, so it ends up in Git and in the Render deploy.
+
+---
+
+## Summary
+
+**Key question answered:** *Two searches are in flight, and the older one answers last. Which result does the user see?* The newest one. The effect's cleanup aborts the previous request, and every request, including a retry, goes through that one path.
+
+| Session | Result |
+|---|---|
+| 1 | Robust list API: bounded `limit`, validated `sport` and `sort`, stable order with `id` as tie-breaker and `NULLS LAST` |
+| 2 | Filter, sort and page state in the URL; pagination |
+| 3 | Stale responses cancelled; three distinct empty states |
+| 4 | Two indexes for the sorted, filtered list; measured with `EXPLAIN ANALYZE` at 100,000 rows |

@@ -1,112 +1,74 @@
-# 12 — End-to-End Testing
+# Frontend — Workout Tracker UI
 
-The capstone: testing the **whole running app** through a **real browser**,
-the way a user actually experiences it — with **Playwright**. Where component
-tests (concept 11) verify pieces in isolation, E2E verifies the pieces working
-*together* across a complete user journey.
+The browser app of the workout tracker: **React 19**, **TypeScript** and **Vite**, with **React Router**. It lists, filters, adds, edits and deletes workouts through the [backend API](../backend/README.md).
+
+For the project overview, see the [main README](../README.md). Design decisions per milestone are in [`docs/`](../docs).
+
+## Pages
+
+| Route | Component | What it does |
+|---|---|---|
+| `/` | `HomePage` | Start page |
+| `/workouts` | `WorkoutsPage` | List with sport filter, sort order and pagination; the state lives in the URL (`?sport=swim&sort=-distance_km&page=2`) |
+| `/workouts/:id` | `WorkoutDetailsPage` | One workout, with Edit and Delete (inline confirmation) |
+| `/workouts/new` | `forms/WorkoutForm` | Add a workout |
+| `/workouts/:id/edit` | `EditWorkoutPage` | Loads the workout, then shows the same form in edit mode |
+
+Every page shares a layout (`App.tsx`) with the navigation and `ConnectionStatus`, which checks the API every 10 seconds.
+
+## Structure
+
+| Folder / file | Role |
+|---|---|
+| `src/api/client.ts` | `request()`: every call to the API goes through here. Builds the URL from `VITE_API_URL`, applies a timeout, and turns each failure into a named error |
+| `src/api/api-error.ts` | `ApiError` (the API answered with an error), `NetworkError` (no answer), `RequestCancelledError` (aborted on purpose) |
+| `src/api/workout-api.ts` | One function per endpoint (`getWorkouts`, `createWorkout`, `updateWorkout`, `deleteWorkout`, …); `PAGE_SIZE` |
+| `src/api/workout-types.ts` | The `Workout` type and a runtime check of every response, since TypeScript types disappear at runtime |
+| `src/api/error-message.ts` | Turns any error into a message for the user |
+| `src/forms/` | The add/edit form and its validation, which mirrors the server's rules |
+| `tests/` | Playwright end-to-end tests |
+
+## How the pages behave
+
+- **Every state is shown:** loading, error with **Try again**, empty, and data. An empty list distinguishes "no workouts yet", "no matches for this filter" and "page out of range".
+- **Outdated requests are cancelled.** Each list or detail load runs in an effect with its own `AbortController`; changing a filter aborts the previous request, so an old answer can't overwrite a newer one.
+- **The server stays the authority.** The form validates in the browser for quick feedback, and maps the server's field errors back to the right input. If a save can't be confirmed (no answer), it says so instead of claiming failure.
+- **Accessible forms:** labels, `aria-invalid`, `aria-describedby`, `role="alert"` for errors, `role="status"` for updates.
+
+## Configuration
+
+| Variable | Purpose |
+|---|---|
+| `VITE_API_URL` | Address of the API, without a trailing `/`. Default: `http://localhost:5000` |
+
+Anything prefixed with `VITE_` is built into the JavaScript bundle and visible to every visitor. Never put secrets there.
 
 ## Run it
 
+**With Docker** (recommended), from the repo root:
 ```powershell
-cd 12-e2e-testing
+docker compose up --build
+```
+Open http://localhost:5173. The `frontend` folder is mounted into the container, so code changes reload live without a rebuild.
+
+**Without Docker**, from `frontend/`:
+```powershell
 npm install
-npm install react-router-dom      # the app-under-test (reused from concept 08)
-npm init playwright@latest         # scaffolds config, example test, browsers
-npx playwright test                # headless
-npx playwright test --headed       # watch it drive a real browser
-npx playwright test --ui           # interactive debugging UI
+npm run dev
 ```
 
-## Component test vs E2E test — the core distinction
+## Scripts
 
-- **Component test (11):** renders **one component** in a **fake DOM**
-  (jsdom), in **isolation**. No routing, no real browser, no server. Answers
-  "does this piece work by itself?"
-- **E2E test (12):** drives a **real browser** through the **whole running
-  app** — routing, navigation, URL changes, rendering, interaction all at
-  once. Answers "do the pieces work *together*, as a user experiences them?"
+| Command | What it does |
+|---|---|
+| `npm run dev` | Development server on port 5173 |
+| `npm run build` | Type check (`tsc -b`) and production build. Unused variables fail the build, as they do on Vercel |
+| `npm test` | Unit and component tests (Vitest + Testing Library); the API is faked with `vi.mock` |
+| `npm run test:e2e` | End-to-end tests in a real browser (Playwright); needs the app and the API running |
+| `npm run lint` | Linting (oxlint) |
 
-E2E verifies **integration** — that the parts connect into a working flow —
-which component tests can't, because they test parts in isolation by design.
+Test files use their own TypeScript settings (`tsconfig.test.json`) so Vitest's globals are known.
 
-## Setup that makes it "end-to-end"
+## Deployment
 
-Two config pieces in `playwright.config.ts`:
-
-```ts
-use: {
-  baseURL: 'http://localhost:5173',   // navigate with relative paths
-},
-
-webServer: {
-  command: 'npm run dev',             // START the real app before testing
-  url: 'http://localhost:5173',       // wait until it responds
-  reuseExistingServer: !process.env.CI,
-},
-```
-
-**`webServer` is the essence of E2E:** it *starts your actual app running*,
-because an E2E test drives a real browser against a real, running app — the
-app has to actually be served somewhere for the browser to load it. A
-component test needs no server (it renders the component itself); E2E needs
-the whole app **running**. That requirement *is* what makes it end-to-end.
-
-## A user journey
-
-The real payoff — a multi-step path through the whole app:
-
-```ts
-import { test, expect } from '@playwright/test';
-
-test('user can navigate to a workout detail page', async ({ page }) => {
-  await page.goto('/');
-
-  await page.getByRole('link', { name: 'Workouts' }).click();
-  await expect(page).toHaveURL('/workouts');
-
-  await page.getByRole('link', { name: 'swim' }).click();
-
-  await expect(page).toHaveURL('/workouts/1');
-  await expect(page.getByText('Workout #1')).toBeVisible();
-});
-```
-
-This one test exercises the entire routing system (concept 08) — nav links,
-route matching, URL params, detail rendering — **working together** in a real
-browser. No component test could verify this; it needs the whole routed app
-running.
-
-- `page.goto('/')` — loads the real app at `baseURL`.
-- `page.getByRole('link', { name })` — finds elements by role, the way a user
-  (and assistive tech) perceives them. Same user-centric query philosophy as
-  React Testing Library in concept 11 — that instinct transfers directly.
-- `expect(page).toHaveURL(...)` — asserts the URL changed (tests routing
-  end-to-end).
-- `toBeVisible()` — asserts the element is actually shown.
-
-## Setup gotchas hit
-
-- **`Cannot find name 'process'`** — Playwright's config runs in Node, but a
-  Vite project has no Node types by default. Fix: `npm i -D @types/node` and
-  add `"node"` to `types` in the Node-side tsconfig. (Same category as concept
-  11's jest-dom type error — tell TypeScript about the environment.)
-- **`Missing script: "start"`** — the scaffolder defaults `webServer.command`
-  to Create-React-App's `npm run start`. Vite uses **`npm run dev`** on port
-  **5173** (not 3000). Match both to Vite.
-- **The example test** (`tests/example.spec.ts`) tests Playwright's own site —
-  delete it so only your tests run. Playwright also runs across 3 browsers by
-  default (chromium/firefox/webkit); trim the `projects` array while learning.
-
-## What I learned
-
-> - How is an E2E test fundamentally different from a component test?
-> - Why does E2E need the app actually running (the `webServer` config)?
-> - What does an E2E journey verify that isolated component tests can't?
-> - How did your work Playwright experience transfer here?
-
-## Concepts touched
-
-Playwright, end-to-end testing, real browser vs jsdom, testing the running
-app vs isolated components, `webServer` and `baseURL` config, user journeys,
-`page.goto` / `getByRole` / `toHaveURL` / `toBeVisible`, headed vs headless,
-integration testing, the Node-types and Vite-command setup gotchas.
+Deployed on **Vercel** with `frontend` as the root folder and `VITE_API_URL` set to the Render address. `vercel.json` sends every path to `index.html`, so a reload on `/workouts/5` still works. The API must list the Vercel address in its `CORS_ORIGINS`.

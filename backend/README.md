@@ -1,109 +1,112 @@
-# 10 — Data Parsing & Extraction
+# Backend — Workout API
 
-The final concept. Building on everything before it, this adds a route that
-parses **loosely-natural text** into workouts — turning lines like
-"Went for a 6km run, 35 min" into structured, validated, stored records.
+The REST API of the workout tracker: **Flask**, **SQLAlchemy 2.0**, **Alembic** and **PostgreSQL**. It stores workouts, validates every write, and serves a filtered, sorted and paginated list to the frontend.
 
-Where concept 07 parsed rigid CSV (fields already separated), this parses
-free-form sentences where the pieces (sport, distance, duration) can appear
-anywhere, in any order, in different words. The tool for that is **regular
-expressions**.
+For the project overview, see the [main README](../README.md). Design decisions per milestone are in [`docs/`](../docs).
+
+## Endpoints
+
+| Method | Path | What it does | Success |
+|---|---|---|---|
+| `GET` | `/workouts` | List workouts: filters, sorting, pagination (see below) | `200` |
+| `GET` | `/workouts/<id>` | One workout | `200` |
+| `POST` | `/workouts` | Create a workout (JSON) | `201` |
+| `PUT` | `/workouts/<id>` | Replace a workout (JSON, all fields) | `200` |
+| `DELETE` | `/workouts/<id>` | Delete a workout | `204` |
+| `POST` | `/workouts/upload` | Import a CSV file, all or nothing | `201` |
+| `POST` | `/workouts/parse` | Import plain-text lines like "Went for a 6km run, 35 min", all or nothing | `201` |
+
+**List parameters** for `GET /workouts`:
+
+| Parameter | Allowed | Default |
+|---|---|---|
+| `sport` | `swim`, `run`, `badminton`, `cycle`, `strength`, `rest` | all sports |
+| `min_distance`, `min_duration` | numbers | none |
+| `sort` | `id`, `distance_km`, `duration_min`; a leading `-` means descending | `id` |
+| `limit` | 1–100 | 20 |
+| `offset` | ≥ 0 | 0 |
+
+**Errors** always have the same shape, so the frontend can show each message next to the right field:
+```json
+{ "errors": [ { "field": "distance_km", "error": "The key distance_km is missing." } ] }
+```
+Invalid input is `400`, an unknown id is `404`. The full contract is in [`docs/api-contract.md`](../docs/api-contract.md).
+
+## Files
+
+| File | Role |
+|---|---|
+| `app.py` | Routes, request validation (`validate_workout_payload`), error format, CORS |
+| `db.py` | Database access: engine (`pool_pre_ping`), queries, inserts in one transaction |
+| `models.py` | The `Workout` model with its check constraints and indexes |
+| `migrations/` | Alembic migrations: the schema history |
+| `cache.py` | Small in-memory cache for list queries; cleared on every write |
+| `seed.py` | Replaces **all** workouts with 40 sample workouts |
+| `check_db.py` | Connection check against `DATABASE_URL` |
+| `try_parse.py` | Scratch script for the text parser |
+| `conftest.py` | Test setup: switches to the test database and empties it before each test |
+| `test_baseline.py`, `test_contract.py`, `test_app.py` | API tests: behaviour, status codes, error format |
+
+## Configuration
+
+Copy `.env.example` to `.env` for local runs without Docker. Never commit `.env`.
+
+| Variable | Purpose |
+|---|---|
+| `DATABASE_URL` | The database the API uses, e.g. `postgresql+psycopg://…/workouts` |
+| `TEST_DATABASE_URL` | A **separate** database for the tests, which empty it before every test |
+| `CORS_ORIGINS` | Comma-separated list of frontend origins allowed to call the API (default `http://localhost:5173`) |
 
 ## Run it
 
+**With Docker** (recommended), from the repo root:
 ```powershell
-cd 10-data-parsing
+docker compose up --build
+```
+The API runs on http://localhost:5000, next to PostgreSQL and the frontend. The backend code is **copied into the image**, not mounted, so rebuild after code changes: `docker compose up -d --build api`.
+
+**Without Docker**, from `backend/`, against a local PostgreSQL:
+```powershell
+python -m venv .venv
+.venv\Scripts\activate
 pip install -r requirements.txt
-python app.py
+alembic upgrade head
+flask --app app run
 ```
 
-## Parsing text into workouts
+## Tests
 
-`POST /workouts/parse` takes plain text, one workout per line:
-
+From `backend/` with the venv active and `TEST_DATABASE_URL` set in `.env`:
 ```powershell
-$body = @"
-Went for a 6km run, 35 min
-Swam 0.4km in 27 minutes
-Badminton for 90 minutes
-Rest day
-"@
-Invoke-RestMethod -Uri http://127.0.0.1:5000/workouts/parse -Method Post -Body $body -ContentType "text/plain"
+pytest
 ```
+The tests run against the test database only; the development data is never touched. Setting up both databases is described in [`docs/01-postgresql.md`](../docs/01-postgresql.md).
 
-Returns `{"inserted": 4}`. Each sentence was parsed into a workout and
-stored. If any line can't be parsed into a valid workout, the whole batch is
-rejected (all-or-nothing) and nothing is inserted.
+## Migrations
 
-## How the parsing works
+Schema changes go through Alembic, never by hand:
 
-Each line goes through `parse_line`, which uses three `re.search` calls — one
-per field. The key idea is **search-then-capture**: `re.search` finds a
-pattern *anywhere* in the line (because free-form text has no fixed order),
-and a capturing group `( )` extracts the specific value out of the match.
+1. Change `models.py`.
+2. Rebuild, so the container sees the new model: `docker compose up -d --build api`
+3. Generate: `docker compose exec api alembic revision --autogenerate -m "<what changed>"`. It should report a `Detected …` line for each change.
+4. Copy the new file out of the container, so it ends up in Git:
+   `docker compose cp api:/app/migrations/versions/<file>.py backend/migrations/versions/`
+5. Review it, then apply: `docker compose exec api alembic upgrade head`. Test `alembic downgrade -1` once as well.
 
-```python
-# distance: a number next to "km", capture just the number
-m = re.search(r"(\d+\.?\d*)\s*km", text, re.IGNORECASE)
-distance = float(m.group(1)) if m else None
+## Deployment
 
-# duration: a number next to "min" (matches min/mins/minutes)
-m = re.search(r"(\d+)\s*min", text, re.IGNORECASE)
-duration = int(m.group(1)) if m else None
+The API runs on **Render** as a Docker service; the database is on **Neon**. Render needs `DATABASE_URL`, `CORS_ORIGINS` and `PORT=5000`.
 
-# sport: one of a known set of words, including natural variants
-m = re.search(r"(run|ran|running|jog|jogging|swim|swam|swimming|"
-              r"cycle|cycled|cycling|badminton|strength|rest)", text, re.IGNORECASE)
-sport = m.group(1).lower() if m else None
+Migrations are **not** applied by the deploy. Run them from the laptop against Neon, then remove the variable again:
+```powershell
+$env:DATABASE_URL = "<Neon connection string>"
+alembic upgrade head
+Remove-Item Env:DATABASE_URL
 ```
+Details are in [`docs/04-first-vertical-slice.md`](../docs/04-first-vertical-slice.md).
 
-Two touches that matter for natural text:
+## Careful
 
-- **`re.IGNORECASE`** so "Rest" and "RUN" match; then `.lower()` on the
-  captured sport to normalise case.
-- **A variant map** (`ran`->`run`, `swam`->`swim`, `cycling`->`cycle`, ...)
-  so natural phrasings normalise to the canonical sports the rest of the app
-  expects. Detecting "swam" is only useful if it becomes "swim".
-
-A missing piece (a rest day has no distance/duration) becomes `None` — the
-same optional-field handling used throughout the lab.
-
-## The whole lab, composed
-
-This endpoint reuses almost every earlier concept: `parse_line` (new) feeds
-`validate_data` (02/07), which feeds `add_workout` (04), inside an
-all-or-nothing batch (07), finishing with `cache.clear()` (09) because it's a
-write. The capstone is mostly orchestration of parts already built.
-
-## Known gaps (deliberately deferred)
-
-Truly free-form natural language is unbounded — no parser handles every
-phrasing. This one handles common cases and degrades gracefully (unrecognised
-pieces become `None`) rather than crashing. Known limits:
-
-- **`10k` (no "m")** isn't matched — the distance pattern requires "km". Left
-  strict on purpose: a wrong distance is worse than a missing one.
-- **Unknown sport words** ("hiked", "paddled") aren't recognised; they'd
-  produce `sport: None` and be rejected by validation.
-- **One workout per line** is assumed; multiple activities in one sentence
-  aren't split.
-
-Handling arbitrary natural language is a much larger problem (NLP territory);
-this concept deliberately scopes to common, predictable phrasings.
-
-## What I learned
-
-> - Why does regex extraction use `search` (find anywhere) rather than
->   matching the whole line?
-> - What do capturing groups `( )` do, and why are they the heart of
->   extraction?
-> - Why normalise variants ("swam" -> "swim") instead of just detecting them?
-> - How did this final endpoint reuse the earlier concepts?
-
-## Concepts touched
-
-Regular expressions (`re.search`, capturing groups, `re.IGNORECASE`),
-extracting structured data from unstructured text, normalising variants to
-canonical forms, graceful degradation on unrecognised input, composing the
-full pipeline (parse -> validate -> insert -> invalidate) from earlier
-concepts.
+- **`seed.py` empties the table.** Only run it against a database without data you want to keep, and check `DATABASE_URL` first.
+- **Connection strings stay out of the repo:** in `.env` locally, in the Render and Neon settings in production.
+- `docker compose down -v` deletes the local database volume, and with it all local data.
