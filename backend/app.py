@@ -303,5 +303,17 @@ def upload_workout():
 
     return jsonify({"inserted": count}), 201
 
+
+@app.get("/stats/weekly")
+def get_weekly_stats():
+    try:
+        weeks = int(request.args.get("weeks", "8"))
+    except ValueError:
+        return error_response([{"field": "weeks", "error": "weeks must be a whole number."}])
+    if not 1 <= weeks <= 52:
+        return error_response([{"field": "weeks", "error": "weeks must be between 1 and 52."}])
+    return jsonify({"weeks": weeks, "stats": db.weekly_stats(weeks)})
+
+
 if __name__ == "__main__":
     app.run(debug=True)

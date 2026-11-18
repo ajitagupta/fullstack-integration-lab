@@ -1,5 +1,6 @@
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
-from sqlalchemy import CheckConstraint, Float, Index, Integer, String, text
+from sqlalchemy import CheckConstraint, Date, Float, Index, Integer, String, func, text
+from datetime import date
 
 class Base(DeclarativeBase):
     pass
@@ -11,6 +12,7 @@ class Workout(Base):
     sport: Mapped[str] = mapped_column(String(20), nullable=False)
     distance_km: Mapped[float | None] = mapped_column(Float, nullable=True)
     duration_min: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    performed_on: Mapped[date] = mapped_column(Date, nullable=False, server_default=func.current_date())
 
     __table_args__ = (
         CheckConstraint("sport IN ('swim', 'run', 'cycle', 'strength', 'badminton', 'rest')", name="ck_workouts_sport_allowed"),

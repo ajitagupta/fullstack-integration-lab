@@ -99,3 +99,23 @@ def test_invalid_sort_returns_400(client):
     response = client.get("/workouts?sort=colour")
     assert response.status_code == 400
     assert response.get_json()["errors"][0]["field"] == "sort"
+
+def test_weekly_stats_sums_per_sport(client):
+    client.post("/workouts", json={"sport": "run", "distance_km": 5.0, "duration_min": 30})
+    client.post("/workouts", json={"sport": "run", "distance_km": 10.0, "duration_min": 60})
+    client.post("/workouts", json={"sport": "swim", "distance_km": 1.5, "duration_min": 40})
+
+    response = client.get("/stats/weekly?weeks=1")
+
+    assert response.status_code == 200
+    stats = response.get_json()["stats"]
+    assert [(s["sport"], s["workouts"], s["distance_km"], s["duration_min"]) for s in stats] == [
+        ("run", 2, 15.0, 90),
+        ("swim", 1, 1.5, 40),
+    ]
+
+@pytest.mark.parametrize("weeks", ["0", "53", "abc"])
+def test_weekly_stats_rejects_invalid_weeks(client, weeks):
+    response = client.get(f"/stats/weekly?weeks={weeks}")
+    assert response.status_code == 400
+    assert response.get_json()["errors"][0]["field"] == "weeks"    

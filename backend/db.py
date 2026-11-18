@@ -1,8 +1,9 @@
 import os
 from dotenv import load_dotenv
-from sqlalchemy import create_engine, select, func
+from sqlalchemy import Date, create_engine, select, func
 from sqlalchemy.orm import sessionmaker
 from models import Workout
+from datetime import date, timedelta
 
 load_dotenv()
 engine = create_engine(os.environ["DATABASE_URL"], pool_pre_ping=True)            # from DATABASE_URL, as in check_db.py
@@ -92,4 +93,29 @@ def add_workouts(workouts):
             session.add(workout)
 
     return len(workouts)             # an exception inside the block → ROLLBACK, nothing saved
+
+def weekly_stats(weeks):
+    today = date.today()
+    start = today - timedelta(days=today.weekday()) - timedelta(weeks=weeks - 1)   # Monday, (weeks-1) weeks ago
+
+    week_start = func.date_trunc("week", Workout.performed_on).cast(Date).label("week_start")
+    stmt = (
+        select(
+            week_start,
+            Workout.sport,
+            func.count().label("workouts"),
+            func.coalesce(func.sum(Workout.distance_km), 0).label("distance_km"),
+            func.coalesce(func.sum(Workout.duration_min), 0).label("duration_min"),
+        )
+        .where(Workout.performed_on >= start)
+        .group_by(week_start, Workout.sport)
+        .order_by(week_start, Workout.sport)
+    )
+    with SessionLocal() as session:
+        rows = session.execute(stmt).all()
+    return [
+        {"week_start": r.week_start.isoformat(), "sport": r.sport, "workouts": r.workouts,
+         "distance_km": round(r.distance_km, 1), "duration_min": r.duration_min}
+        for r in rows
+    ]
         
