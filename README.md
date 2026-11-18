@@ -117,11 +117,15 @@ Every feature crosses the same line: **browser → API → database**.
 - _Search and filters, with the state in the URL (back/forward works)_
 - _Pagination with a stable sort_
 
-### 7. See progress 🔜
-**Why it matters:** _(milestone 13)_
+### 7. See progress
+**Why it matters:** a list answers "what did I do?". Stats answer "am I doing more or less than last month?", and that needs totals, not rows.
+**Key question:** *Who should add up 500 workouts: the browser, the API, or the database?* The database: it returns a few dozen totals; the browser only reshapes them for the chart.
 
-- _Weekly totals per sport, computed in SQL_
-- _Charts_
+- `GET /stats/weekly`: totals per week and sport, computed in SQL with `GROUP BY`
+- Stacked bar charts of distance and time per week (Recharts), with loading, error and empty states
+- The API's rows pivoted into chart rows by one pure, tested function
+
+📄 [13-stats](docs/13-stats.md)
 
 ### 8. Import 🔜
 **Why it matters:** _(milestone 07)_
@@ -169,14 +173,14 @@ Every feature crosses the same line: **browser → API → database**.
 | 03 | Browser–API boundary | 3 Connect & go live | Done |
 | 04 | First vertical slice + deployment | 3 Connect & go live | Done |
 | 05 | Add, validate, edit & delete workouts | 5 Add & edit | Done |
-| 06 | Search, filters & pagination | 6 Find | 🔜 |
+| 06 | Search, filters & pagination | 6 Find | Done |
 | 07 | CSV import | 8 Import | 🔜 |
 | 08 | Natural-language entry | 10 Just type it | 🔜 |
 | 09 | Diagnose failures | 4 Run reliably | 🔜 |
 | 10 | Test the integrated system | 4 Run reliably | 🔜 |
 | 11 | Delivery & deployment | 4 Run reliably | 🔜 |
 | 12 | Documentation & case study | (this README) | 🔜 |
-| 13 | Stats & charts | 7 See progress | 🔜 |
+| 13 | Stats & charts | 7 See progress | Done |
 | 14 | Garmin & Strava file import | 9 Bring your data | 🔜 |
 | 15 | Live sync *(optional)* | 12 Live sync | 🔜 |
 | 16 | Look good: Bootstrap & theme | 11 Look good | 🔜 |

@@ -2,7 +2,7 @@
 import { request } from "./client";
 import { parseWorkout, parseWorkoutList, type NewWorkout, type Workout, type WorkoutListResponse } from "./workout-types";
 import { NetworkError } from "./api-error";
-
+import { parseWeeklyStats, type WeeklyStat } from "./workout-types";
 
 export const PAGE_SIZE = 10;
 
@@ -55,6 +55,11 @@ export async function updateWorkout(id: number, workout: NewWorkout): Promise<Wo
 
 export async function deleteWorkout(id: number): Promise<void> {
   await request(`/workouts/${id}`, { method: "DELETE" });
+}
+
+export async function getWeeklyStats(weeks: number, signal?: AbortSignal): Promise<WeeklyStat[]> {
+  const data = await request(`/stats/weekly?weeks=${weeks}`, { signal });
+  return parseWeeklyStats(data);
 }
 
 export async function checkConnection(): Promise<boolean> {

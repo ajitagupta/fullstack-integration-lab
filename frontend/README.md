@@ -13,6 +13,7 @@ For the project overview, see the [main README](../README.md). Design decisions 
 | `/workouts/:id` | `WorkoutDetailsPage` | One workout, with Edit and Delete (inline confirmation) |
 | `/workouts/new` | `forms/WorkoutForm` | Add a workout |
 | `/workouts/:id/edit` | `EditWorkoutPage` | Loads the workout, then shows the same form in edit mode |
+| `/stats` | `StatsPage` | Stacked bar charts of distance and time per week and sport (Recharts) |
 
 Every page shares a layout (`App.tsx`) with the navigation and `ConnectionStatus`, which checks the API every 10 seconds.
 
@@ -26,6 +27,7 @@ Every page shares a layout (`App.tsx`) with the navigation and `ConnectionStatus
 | `src/api/workout-types.ts` | The `Workout` type and a runtime check of every response, since TypeScript types disappear at runtime |
 | `src/api/error-message.ts` | Turns any error into a message for the user |
 | `src/forms/` | The add/edit form and its validation, which mirrors the server's rules |
+| `src/stats/` | The weekly chart and `toWeeklyChart`, which reshapes the API's rows for it |
 | `tests/` | Playwright end-to-end tests |
 
 ## How the pages behave

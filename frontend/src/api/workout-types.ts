@@ -61,3 +61,32 @@ export function parseWorkoutList(value: unknown): WorkoutListResponse {
     offset: value.offset as number,
   };
 }
+
+// One row of GET /stats/weekly
+export type WeeklyStat = {
+  week_start: string;          // "2026-11-16", the Monday
+  sport: Sport;
+  workouts: number;
+  distance_km: number;
+  duration_min: number;
+};
+
+export function parseWeeklyStats(value: unknown): WeeklyStat[] {
+  if (!isObject(value) || !Array.isArray(value.stats)) throw new InvalidResponseError("stats must be a list.");
+
+  return value.stats.map((row) => {
+    if (!isObject(row)) throw new InvalidResponseError("Stat row is not an object.");
+    if (typeof row.week_start !== "string") throw new InvalidResponseError("week_start must be a string.");
+    if (typeof row.sport !== "string" || !SPORTS.includes(row.sport as Sport)) throw new InvalidResponseError("Stat sport is not an allowed sport.");
+    if (typeof row.workouts !== "number" || typeof row.distance_km !== "number" || typeof row.duration_min !== "number")
+      throw new InvalidResponseError("workouts, distance_km and duration_min must be numbers.");
+
+    return {
+      week_start: row.week_start,
+      sport: row.sport as Sport,
+      workouts: row.workouts,
+      distance_km: row.distance_km,
+      duration_min: row.duration_min,
+    };
+  });
+}

@@ -15,6 +15,7 @@ For the project overview, see the [main README](../README.md). Design decisions 
 | `DELETE` | `/workouts/<id>` | Delete a workout | `204` |
 | `POST` | `/workouts/upload` | Import a CSV file, all or nothing | `201` |
 | `POST` | `/workouts/parse` | Import plain-text lines like "Went for a 6km run, 35 min", all or nothing | `201` |
+| `GET` | `/stats/weekly?weeks=8` | Totals per week and sport (workouts, km, minutes), computed in SQL; `weeks` 1–52 | `200` |
 
 **List parameters** for `GET /workouts`:
 
@@ -45,7 +46,7 @@ Invalid input is `400`, an unknown id is `404`. The full contract is in [`docs/a
 | `check_db.py` | Connection check against `DATABASE_URL` |
 | `try_parse.py` | Scratch script for the text parser |
 | `conftest.py` | Test setup: switches to the test database and empties it before each test |
-| `test_baseline.py`, `test_contract.py`, `test_app.py` | API tests: behaviour, status codes, error format |
+| `test_*.py` | API tests (`test_baseline`, `test_contract`, `test_app`): behaviour, status codes, error format |
 
 ## Configuration
 
