@@ -110,12 +110,16 @@ Every feature crosses the same line: **browser → API → database**.
 
 📄 [05-forms-validation](docs/05-forms-validation.md)
 
-### 6. Find 🔜
-**Why it matters:** _(milestone 06)_
-**Key question:** _e.g. Two searches are in flight, and the older one answers last. Which result does the user see?_
+### 6. Find
+**Why it matters:** a list of 40 rows works without any of this. A list of 4,000 needs filters, a page size the server controls, and an order that doesn't change between pages.
+**Key question:** *Two searches are in flight, and the older one answers last. Which result does the user see?* The newest one: the previous request is cancelled, and every request, including a retry, goes through one path.
+ 
+- Validated filters and sorting, with `id` as tie-breaker for a stable order across pages
+- Filter, sort and page state in the URL: bookmarkable, and back/forward work
+- Distinct empty states: no workouts yet, no matches for this filter, page out of range
+- Two indexes for the sorted, filtered list, measured with `EXPLAIN ANALYZE` at 100,000 rows (6.3 ms → 0.08 ms)
 
-- _Search and filters, with the state in the URL (back/forward works)_
-- _Pagination with a stable sort_
+📄 [06-search-pagination](docs/06-search-pagination.md)
 
 ### 7. See progress
 **Why it matters:** a list answers "what did I do?". Stats answer "am I doing more or less than last month?", and that needs totals, not rows.
