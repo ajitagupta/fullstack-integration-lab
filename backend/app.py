@@ -276,51 +276,64 @@ def validate_data(data):
 
     return None
 
-@app.route('/workouts/upload', methods=['POST'])
-def upload_workout():
-
+def read_csv_upload():
+    """Checks the uploaded file. Returns (rows, None), or (None, error response)."""
     file = request.files.get("file")
     if file is None or file.filename == "":
-        return error_response([{"field": "file", "error": "No file provided."}])
+        return None, error_response([{"field": "file", "error": "No file provided."}])
     if not file.filename.lower().endswith(".csv"):
-        return error_response([{"field": "file", "error": "Only .csv files are accepted."}])
-
+        return None, error_response([{"field": "file", "error": "Only .csv files are accepted."}])
     try:
-        text = file.read().decode("utf-8-sig")         # -sig: drops Excel's invisible BOM if present
+        text = file.read().decode("utf-8-sig")
     except UnicodeDecodeError:
-        return error_response([{"field": "file", "error": "The file must be UTF-8 text."}])
+        return None, error_response([{"field": "file", "error": "The file must be UTF-8 text."}])
 
     reader = csv.DictReader(io.StringIO(text))
     if reader.fieldnames is None or "sport" not in reader.fieldnames:
-        return error_response([{"field": "file", "error": "The file needs a header row with at least a sport column."}])
+        return None, error_response([{"field": "file", "error": "The file needs a header row with at least a sport column."}])
 
-    workouts = list(reader)
-    if not workouts:
-        return error_response([{"field": "file", "error": "The file has no workout rows."}])
-    if len(workouts) > MAX_IMPORT_ROWS:
-        return error_response([{"field": "file", "error": f"At most {MAX_IMPORT_ROWS} rows per file."}])
+    rows = list(reader)
+    if not rows:
+        return None, error_response([{"field": "file", "error": "The file has no workout rows."}])
+    if len(rows) > MAX_IMPORT_ROWS:
+        return None, error_response([{"field": "file", "error": f"At most {MAX_IMPORT_ROWS} rows per file."}])
+    return rows, None
 
-    cleaned = []
-    errors = []
 
-    for i, raw_row in enumerate(workouts, start=1):
-        clean = clean_row(raw_row)    # clean this one row
-        error = validate_data(clean)  # validate the cleaned row
-        if error is not None:
-            errors.append({"row": i, **error})
-        else:
-            cleaned.append(clean)
+def check_rows(raw_rows):
+    """Cleans and validates every row; keeps the result per row."""
+    checked = []
+    for i, raw in enumerate(raw_rows, start=1):
+        clean = clean_row(raw)
+        checked.append({"row": i, **clean, "error": validate_data(clean)})
+    return checked
 
-    # all-or-nothing decision, AFTER the loop:
+
+@app.route("/workouts/upload", methods=["POST"])
+def upload_workout():
+    rows, problem = read_csv_upload()
+    if problem:
+        return problem
+
+    checked = check_rows(rows)
+    errors = [{"row": c["row"], **c["error"]} for c in checked if c["error"]]
     if errors:
-        return error_response(errors) # something failed -> insert nothing
+        return error_response(errors)            # all or nothing
 
-    count = db.add_workouts(cleaned)
-
-    cache.clear()          # data changed — stale reads must go
-
+    workouts = [{"sport": c["sport"], "distance_km": c["distance_km"], "duration_min": c["duration_min"]} for c in checked]
+    count = db.add_workouts(workouts)
+    cache.clear()
     return jsonify({"inserted": count}), 201
 
+@app.post("/workouts/upload/preview")
+def preview_upload():
+    rows, problem = read_csv_upload()
+    if problem:
+        return problem
+
+    checked = check_rows(rows)
+    invalid = sum(1 for c in checked if c["error"])
+    return jsonify({"rows": checked, "valid": len(checked) - invalid, "invalid": invalid}), 200
 
 @app.get("/stats/weekly")
 def get_weekly_stats():

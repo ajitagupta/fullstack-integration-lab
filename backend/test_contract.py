@@ -149,3 +149,22 @@ def test_upload_rejects_large_file(client):
     response = upload(client, b"sport\n" + b"rest\n" * 300_000)        # ~1.5 MB
     assert response.status_code == 413
     assert response.get_json()["errors"][0]["field"] == "file"
+
+def preview(client, content: bytes):
+    data = {"file": (io.BytesIO(content), "workouts.csv")}
+    return client.post("/workouts/upload/preview", data=data, content_type="multipart/form-data")
+
+def test_preview_reports_every_row_and_saves_nothing(client):
+    response = preview(client, b"sport,distance_km,duration_min\nswim,1.5,40\nrun,,30\n")
+
+    assert response.status_code == 200
+    body = response.get_json()
+    assert (body["valid"], body["invalid"]) == (1, 1)
+    assert body["rows"][0]["error"] is None
+    assert body["rows"][1]["error"]["field"] == "distance_km"
+    assert client.get("/workouts").get_json()["total"] == 0      # nothing was saved
+
+def test_preview_rejects_bad_files_like_upload(client):
+    response = preview(client, b"distance_km\n5\n")
+    assert response.status_code == 400
+    assert response.get_json()["errors"][0]["field"] == "file"

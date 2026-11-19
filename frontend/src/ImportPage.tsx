@@ -1,42 +1,63 @@
-import { useState, type ChangeEvent } from "react";
+import { useEffect, useState, type ChangeEvent } from "react";
 import { Link } from "react-router-dom";
-import { uploadWorkouts } from "./api/workout-api";
-import { ApiError, NetworkError } from "./api/api-error";
+import { previewUpload, uploadWorkouts } from "./api/workout-api";
+import type { UploadPreview } from "./api/workout-types";
+import { ApiError, NetworkError, RequestCancelledError } from "./api/api-error";
 import { errorMessage } from "./api/error-message";
 
+const MAX_BYTES = 1024 * 1024;
 
-const MAX_BYTES = 1024 * 1024;   // the same 1 MB limit as the server
+function fileProblemOf(file: File | null): string | null {
+  if (file === null) return null;
+  if (!file.name.toLowerCase().endsWith(".csv")) return "Only .csv files are accepted.";
+  if (file.size > MAX_BYTES) return "The file is larger than 1 MB.";
+  return null;
+}
 
 function ImportPage() {
   const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<UploadPreview | null>(null);
+  const [checking, setChecking] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [inserted, setInserted] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [rowErrors, setRowErrors] = useState<{ row?: number; field?: string; error: string }[]>([]);
+
+  const fileProblem = fileProblemOf(file);
+
+  // A new file → ask the server for a preview. Same pattern as the list: abort if the file changes.
+  useEffect(() => {
+    if (file === null || fileProblemOf(file) !== null) return;
+    const controller = new AbortController();
+    setChecking(true);
+    previewUpload(file, controller.signal)
+      .then((result) => setPreview(result))
+      .catch((err) => {
+        if (err instanceof RequestCancelledError) return;
+        setError(errorMessage(err));
+      })
+      .finally(() => setChecking(false));
+    return () => controller.abort();
+  }, [file]);
 
   function chooseFile(e: ChangeEvent<HTMLInputElement>) {
-    const chosen = e.target.files?.[0] ?? null;
-    setFile(chosen);
+    setFile(e.target.files?.[0] ?? null);
+    setPreview(null);
     setInserted(null);
-    setRowErrors([]);
     setError(null);
-    if (chosen && !chosen.name.toLowerCase().endsWith(".csv")) setError("Only .csv files are accepted.");
-    else if (chosen && chosen.size > MAX_BYTES) setError("The file is larger than 1 MB.");
   }
 
-  async function handleUpload() {
+  async function handleImport() {
     if (!file) return;
     setUploading(true);
     setError(null);
-    setRowErrors([]);
     try {
       setInserted(await uploadWorkouts(file));
+      setPreview(null);
     } catch (err) {
-      if (err instanceof ApiError && err.errors.some((e) => e.row !== undefined)) {
-        setRowErrors(err.errors);
-        setError("Nothing was imported. Fix these rows and upload again:");
-      } else if (err instanceof NetworkError) {
+      if (err instanceof NetworkError) {
         setError("We couldn't confirm the import. Check your workouts before uploading again.");
+      } else if (err instanceof ApiError) {
+        setError("The file changed or is no longer valid. Choose it again to see a new preview.");
       } else {
         setError(errorMessage(err));
       }
@@ -45,7 +66,7 @@ function ImportPage() {
     }
   }
 
-  const fileProblem = file !== null && (!file.name.toLowerCase().endsWith(".csv") || file.size > MAX_BYTES);
+  const canImport = preview !== null && preview.invalid === 0 && !uploading;
 
   return (
     <>
@@ -54,21 +75,36 @@ function ImportPage() {
 
       <label htmlFor="csv-file">CSV file</label>
       <input id="csv-file" type="file" accept=".csv,text/csv" onChange={chooseFile} />
-      <button onClick={handleUpload} disabled={!file || fileProblem || uploading}>
-        {uploading ? "Importing…" : "Import"}
-      </button>
 
-      {error && (
-        <div role="alert">
-          <p>{error}</p>
-          {rowErrors.length > 0 && (
-            <ul>
-              {rowErrors.map((e, i) => (
-                <li key={i}>Row {e.row}{e.field && ` · ${e.field}`}: {e.error}</li>
+      {fileProblem && <p role="alert">{fileProblem}</p>}
+      {error && <p role="alert">{error}</p>}
+      {checking && <p role="status">Checking the file…</p>}
+
+      {preview && (
+        <>
+          <p role="status">
+            {preview.valid} rows ready{preview.invalid > 0 && `, ${preview.invalid} with errors. Fix them in the file and choose it again`}.
+          </p>
+          <table>
+            <thead>
+              <tr><th>Row</th><th>Sport</th><th>Distance</th><th>Duration</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+              {preview.rows.map((r) => (
+                <tr key={r.row} className={r.error ? "row-invalid" : undefined}>
+                  <td>{r.row}</td>
+                  <td>{r.sport ?? "—"}</td>
+                  <td>{r.distance_km ?? "—"}</td>
+                  <td>{r.duration_min ?? "—"}</td>
+                  <td>{r.error ? `${r.error.field}: ${r.error.error}` : "OK"}</td>
+                </tr>
               ))}
-            </ul>
-          )}
-        </div>
+            </tbody>
+          </table>
+          <button onClick={handleImport} disabled={!canImport}>
+            {uploading ? "Importing…" : `Import ${preview.valid} workouts`}
+          </button>
+        </>
       )}
 
       {inserted !== null && (

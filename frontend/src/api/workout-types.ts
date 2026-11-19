@@ -90,3 +90,20 @@ export function parseWeeklyStats(value: unknown): WeeklyStat[] {
     };
   });
 }
+
+// GET-like answer of POST /workouts/upload/preview
+export type PreviewRow = {
+  row: number;
+  sport: string | null;
+  distance_km: number | string | null;      // a string when the file had text instead of a number
+  duration_min: number | string | null;
+  error: { field: string; error: string } | null;
+};
+
+export type UploadPreview = { rows: PreviewRow[]; valid: number; invalid: number };
+
+export function parseUploadPreview(value: unknown): UploadPreview {
+  if (!isObject(value) || !Array.isArray(value.rows) || typeof value.valid !== "number" || typeof value.invalid !== "number")
+    throw new InvalidResponseError("The preview has an unexpected shape.");
+  return { rows: value.rows as PreviewRow[], valid: value.valid, invalid: value.invalid };
+}

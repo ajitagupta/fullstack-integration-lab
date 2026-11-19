@@ -2,7 +2,7 @@
 import { request } from "./client";
 import { parseWorkout, parseWorkoutList, type NewWorkout, type Workout, type WorkoutListResponse } from "./workout-types";
 import { NetworkError, InvalidResponseError } from "./api-error";
-import { parseWeeklyStats, type WeeklyStat } from "./workout-types";
+import { parseWeeklyStats, type WeeklyStat, parseUploadPreview, type UploadPreview } from "./workout-types";
 
 export const PAGE_SIZE = 10;
 
@@ -71,6 +71,13 @@ export async function uploadWorkouts(file: File): Promise<number> {
     throw new InvalidResponseError("inserted must be a number.");
   }
   return (data as { inserted: number }).inserted;
+}
+
+export async function previewUpload(file: File, signal?: AbortSignal): Promise<UploadPreview> {
+  const body = new FormData();
+  body.append("file", file);
+  const data = await request("/workouts/upload/preview", { method: "POST", body, signal });
+  return parseUploadPreview(data);
 }
 
 export async function checkConnection(): Promise<boolean> {
