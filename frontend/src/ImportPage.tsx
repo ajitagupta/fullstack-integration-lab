@@ -72,8 +72,8 @@ function ImportPage() {
   return (
     <>
       <h1>Import workouts</h1>
-      <p>A CSV file with the columns <code>sport</code>, <code>distance_km</code>, <code>duration_min</code>. Up to 1,000 rows, 1 MB.</p>
-
+      <p>A CSV file with the columns <code>sport</code>, <code>distance_km</code>, <code>duration_min</code>, and optionally <code>performed_on</code> (e.g. 2026-11-19). Up to 1,000 rows, 1 MB.</p>
+      
       <label htmlFor="csv-file">CSV file</label>
       <input id="csv-file" type="file" accept=".csv,text/csv" onChange={chooseFile} />
 
@@ -90,7 +90,7 @@ function ImportPage() {
           </p>
           <table>
             <thead>
-              <tr><th>Row</th><th>Sport</th><th>Distance</th><th>Duration</th><th>Status</th></tr>
+              <tr><th>Row</th><th>Sport</th><th>Distance</th><th>Duration</th><th>Date</th><th>Status</th></tr>
             </thead>
             <tbody>
               {preview.rows.map((r) => (
@@ -99,6 +99,7 @@ function ImportPage() {
                   <td>{r.sport ?? "—"}</td>
                   <td>{r.distance_km ?? "—"}</td>
                   <td>{r.duration_min ?? "—"}</td>
+                  <td>{r.performed_on ?? "today"}</td>
                   <td>{r.error ? `${r.error.field}: ${r.error.error}` : r.duplicate ? "Already imported" : "OK"}</td>
                 </tr>
               ))}

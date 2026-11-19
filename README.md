@@ -129,12 +129,15 @@ Every feature crosses the same line: **browser → API → database**.
 
 📄 [13-stats](docs/13-stats.md)
 
-### 8. Import 🔜
-**Why it matters:** _(milestone 07)_
-**Key question:** _e.g. One row in a 500-row CSV is invalid. What happens to the other 499?_
+### 8. Import
+**Why it matters:** imported files are the least trustworthy input an app gets: other programs, other encodings, other people's spreadsheets, all arriving as one batch.
+**Key question:** *One row in a 500-row CSV is invalid. What happens to the other 499?* Nothing is saved. The preview shows the bad row first, and the import saves all rows in one transaction or none.
 
-- _File upload with preview and row-level errors_
-- _All-or-nothing import in one transaction_
+- File checks: size, type, encoding (including Excel's invisible BOM), header, row limit
+- A preview of every row with its errors before anything is saved
+- Optional dates per row; rows that already exist are skipped and reported
+
+📄 [07-csv-import](docs/07-csv-import.md)
 
 ---
 
@@ -176,7 +179,7 @@ Every feature crosses the same line: **browser → API → database**.
 | 04 | First vertical slice + deployment | 3 Connect & go live | Done |
 | 05 | Add, validate, edit & delete workouts | 5 Add & edit | Done |
 | 06 | Search, filters & pagination | 6 Find | Done |
-| 07 | CSV import | 8 Import | 🔜 |
+| 07 | CSV import | 8 Import | Done |
 | 08 | Natural-language entry | 10 Just type it | 🔜 |
 | 09 | Diagnose failures | 4 Run reliably | 🔜 |
 | 10 | Test the integrated system | 4 Run reliably | 🔜 |

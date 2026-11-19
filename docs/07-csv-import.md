@@ -6,7 +6,7 @@
 
 | | |
 |---|---|
-| Status | Sessions 1–3 of 4 done |
+| Status | Done (4 sessions) |
 | Endpoints | `POST /workouts/upload/preview`, `POST /workouts/upload` (`multipart/form-data`, field `file`) |
 | Page | `/import` |
 | Example file | [`samples/workouts-example.csv`](../samples/workouts-example.csv) |
@@ -123,7 +123,7 @@ The import answers `{"inserted": 2, "skipped": 1}`; the preview adds a `duplicat
 
 ### Verified
 
-- **5 new backend tests** (44 in total): a date from the file lands in the right week; an invalid date (`2026-13-40`) is rejected with field `performed_on`; the second upload of the same file inserts 0 and skips 2, and the total stays at 2; the preview flags the duplicate row and counts it.
+- **5 new backend tests** (44 at that point): a date from the file lands in the right week; an invalid date (`2026-13-40`) is rejected with field `performed_on`; the second upload of the same file inserts 0 and skips 2, and the total stays at 2; the preview flags the duplicate row and counts it.
 - In the browser: a file imported a second time shows "Already imported" on every row, "0 new rows", and a disabled button.
 
 ### Bugs found
@@ -132,6 +132,23 @@ The import answers `{"inserted": 2, "skipped": 1}`; the preview adds a `duplicat
 - **A copy, not the original:** converting the date to text directly in the cleaned row would have made validation report "must be a date" for every valid date. The preview converts a copy (`{**clean}`).
 - **Two status cells:** the old status `<td>` stayed next to the new one, so each table row had six cells under five headings.
 
-## Session 4: Summary and tests
+## Session 4: The key question as a test
 
-_(planned)_
+Most of what was planned for this session (an import summary, a link to the list, tests that an invalid file writes nothing) was already built in sessions 1–3. What remained:
+
+- **One test for the key question:** a file with 499 valid rows and one invalid row in the middle (row 251) is rejected with exactly that row's error, and the total stays at **0**, not 499.
+- **The date in the preview:** the table got a Date column; rows without a date show "today", since that's the date they get.
+- **The example file** has a `performed_on` column, and the page's intro text names it as optional.
+
+---
+
+## Summary
+
+**Key question answered:** *One row in a 500-row CSV is invalid. What happens to the other 499?* Nothing: none of them are saved. The preview shows the bad row before anything is written, and the import checks again and saves all rows in one transaction or none.
+
+| Session | Result |
+|---|---|
+| 1 | File checks (size, type, encoding with Excel's BOM, header, row limit); the import page |
+| 2 | Preview endpoint with errors per row; import only when every row is valid |
+| 3 | Optional dates; duplicates skipped and reported (`inserted`, `skipped`) |
+| 4 | The key question as a test; dates in the preview |

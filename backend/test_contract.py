@@ -196,3 +196,14 @@ def test_preview_marks_duplicates(client):
     body = response.get_json()
     assert [r["duplicate"] for r in body["rows"]] == [True, False]
     assert body["duplicates"] == 1
+
+def test_one_bad_row_saves_nothing(client):
+    rows = (b"sport,distance_km,duration_min\n"
+            + b"run,5,30\n" * 250
+            + b"run,,30\n"                  # row 251: no distance
+            + b"swim,1,20\n" * 249)
+    response = upload(client, rows)
+
+    assert response.status_code == 400
+    assert response.get_json()["errors"] == [{"row": 251, "field": "distance_km", "error": "The key distance_km is missing."}]
+    assert client.get("/workouts").get_json()["total"] == 0      # not 499

@@ -99,6 +99,7 @@ export type PreviewRow = {
   duration_min: number | string | null;
   error: { field: string; error: string } | null;
   duplicate: boolean;
+  performed_on: string | null;
 };
 
 export type UploadPreview = { rows: PreviewRow[]; valid: number; invalid: number; duplicates: number };
