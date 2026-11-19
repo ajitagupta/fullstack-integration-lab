@@ -1,7 +1,7 @@
 // frontend/src/api/workout-api.ts
 import { request } from "./client";
 import { parseWorkout, parseWorkoutList, type NewWorkout, type Workout, type WorkoutListResponse } from "./workout-types";
-import { NetworkError } from "./api-error";
+import { NetworkError, InvalidResponseError } from "./api-error";
 import { parseWeeklyStats, type WeeklyStat } from "./workout-types";
 
 export const PAGE_SIZE = 10;
@@ -60,6 +60,17 @@ export async function deleteWorkout(id: number): Promise<void> {
 export async function getWeeklyStats(weeks: number, signal?: AbortSignal): Promise<WeeklyStat[]> {
   const data = await request(`/stats/weekly?weeks=${weeks}`, { signal });
   return parseWeeklyStats(data);
+}
+
+export async function uploadWorkouts(file: File): Promise<number> {
+  const body = new FormData();
+  body.append("file", file);                       // "file" = the name Flask reads: request.files.get("file")
+
+  const data = await request("/workouts/upload", { method: "POST", body });
+  if (typeof data !== "object" || data === null || typeof (data as { inserted?: unknown }).inserted !== "number") {
+    throw new InvalidResponseError("inserted must be a number.");
+  }
+  return (data as { inserted: number }).inserted;
 }
 
 export async function checkConnection(): Promise<boolean> {

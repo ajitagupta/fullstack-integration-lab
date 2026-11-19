@@ -13,7 +13,7 @@ For the project overview, see the [main README](../README.md). Design decisions 
 | `POST` | `/workouts` | Create a workout (JSON) | `201` |
 | `PUT` | `/workouts/<id>` | Replace a workout (JSON, all fields) | `200` |
 | `DELETE` | `/workouts/<id>` | Delete a workout | `204` |
-| `POST` | `/workouts/upload` | Import a CSV file, all or nothing | `201` |
+| `POST` | `/workouts/upload` | Import a CSV file (`multipart/form-data`, field `file`), all or nothing; `.csv`, UTF-8, at most 1 MB and 1,000 rows | `201` |
 | `POST` | `/workouts/parse` | Import plain-text lines like "Went for a 6km run, 35 min", all or nothing | `201` |
 | `GET` | `/stats/weekly?weeks=8` | Totals per week and sport (workouts, km, minutes), computed in SQL; `weeks` 1–52 | `200` |
 
@@ -31,13 +31,13 @@ For the project overview, see the [main README](../README.md). Design decisions 
 ```json
 { "errors": [ { "field": "distance_km", "error": "The key distance_km is missing." } ] }
 ```
-Invalid input is `400`, an unknown id is `404`. The full contract is in [`docs/api-contract.md`](../docs/api-contract.md).
+Invalid input is `400`, an unknown id is `404`, an upload over 1 MB is `413`. The full contract is in [`docs/api-contract.md`](../docs/api-contract.md).
 
 ## Files
 
 | File | Role |
 |---|---|
-| `app.py` | Routes, request validation (`validate_workout_payload`), error format, CORS |
+| `app.py` | Routes, request validation (`validate_workout_payload`), file checks for imports, error format, CORS |
 | `db.py` | Database access: engine (`pool_pre_ping`), queries, inserts in one transaction |
 | `models.py` | The `Workout` model with its check constraints and indexes |
 | `migrations/` | Alembic migrations: the schema history |

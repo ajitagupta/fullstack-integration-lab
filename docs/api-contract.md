@@ -7,8 +7,9 @@ Decisions taken in milestone 03. Where the current state below differs, the code
 | Situation | Status |
 |---|---|
 | Read succeeded | `200` |
-| Something was created (`POST /workouts`, `/workouts/upload`, `/workouts/parse`, including `inserted: 0`) | `201` |
-| Invalid input (body, file, text or query parameter) | `400` |
+| Something was created (`POST /workouts`, `/workouts/upload`, `/workouts/parse`; for `/workouts/parse` also `inserted: 0`) | `201` |
+| Invalid input (body, file, text or query parameter), including an upload with no workout rows (header only) | `400` |
+| Upload larger than 1 MB | `413` |
 | Resource not found (including non-numeric ids like `/workouts/abc`) | `404` |
 
 ### Error format

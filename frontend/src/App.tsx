@@ -7,11 +7,12 @@ import { EditWorkoutPage } from "./EditWorkoutPage";
 import './App.css'
 import ConnectionStatus from './ConnectionStatus';
 import StatsPage from "./StatsPage";
+import ImportPage from './ImportPage';
 
 function Layout() {
   return (
     <div>
-      <nav><Link to="/">Home</Link> | <Link to="/workouts">Workouts</Link> | <Link to="/workouts/new">Add Workout</Link> | <Link to="/stats">Stats</Link></nav>
+      <nav><Link to="/">Home</Link> | <Link to="/workouts">Workouts</Link> | <Link to="/workouts/new">Add Workout</Link> | <Link to="/stats">Stats</Link> | <Link to="/import">Import</Link></nav>
       <ConnectionStatus />
       <hr />
       <Outlet />
@@ -31,6 +32,7 @@ function App() {
           <Route path="workouts/new" element={<WorkoutForm />} />
           <Route path="workouts/:id/edit" element={<EditWorkoutPage />} />
           <Route path="stats" element={<StatsPage />} />
+          <Route path="import" element={<ImportPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

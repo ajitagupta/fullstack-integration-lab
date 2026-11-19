@@ -118,4 +118,34 @@ def test_weekly_stats_sums_per_sport(client):
 def test_weekly_stats_rejects_invalid_weeks(client, weeks):
     response = client.get(f"/stats/weekly?weeks={weeks}")
     assert response.status_code == 400
-    assert response.get_json()["errors"][0]["field"] == "weeks"    
+    assert response.get_json()["errors"][0]["field"] == "weeks"
+
+def upload(client, content: bytes, filename="workouts.csv"):
+    data = {"file": (io.BytesIO(content), filename)}
+    return client.post("/workouts/upload", data=data, content_type="multipart/form-data")
+
+def test_upload_accepts_excel_bom(client):
+    response = upload(client, b"\xef\xbb\xbfsport,distance_km,duration_min\nrun,5,30\n")
+    assert response.status_code == 201
+    assert response.get_json()["inserted"] == 1
+
+@pytest.mark.parametrize("content, filename", [
+    (b"sport,distance_km,duration_min\nrun,5,30\n", "workouts.txt"),     # wrong type
+    (b"\xff\xfe\x00\x00binary", "workouts.csv"),                          # not UTF-8
+    (b"distance_km,duration_min\n5,30\n", "workouts.csv"),               # no sport column
+    (b"sport,distance_km,duration_min\n", "workouts.csv"),               # header only
+])
+def test_upload_rejects_bad_files(client, content, filename):
+    response = upload(client, content, filename)
+    assert response.status_code == 400
+    assert response.get_json()["errors"][0]["field"] == "file"
+
+def test_upload_rejects_too_many_rows(client):
+    rows = b"sport,distance_km,duration_min\n" + b"run,5,30\n" * 1001
+    response = upload(client, rows)
+    assert response.status_code == 400
+
+def test_upload_rejects_large_file(client):
+    response = upload(client, b"sport\n" + b"rest\n" * 300_000)        # ~1.5 MB
+    assert response.status_code == 413
+    assert response.get_json()["errors"][0]["field"] == "file"

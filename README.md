@@ -25,8 +25,6 @@ Every feature crosses the same line: **browser → API → database**.
 
 ---
 
-## How to read this
-
 | You want… | Read this | Time |
 |---|---|---|
 | **The overview** | The map, [What this project shows](#what-this-project-shows), the live demo | 2 min |

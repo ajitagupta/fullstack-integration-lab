@@ -14,6 +14,7 @@ For the project overview, see the [main README](../README.md). Design decisions 
 | `/workouts/new` | `forms/WorkoutForm` | Add a workout |
 | `/workouts/:id/edit` | `EditWorkoutPage` | Loads the workout, then shows the same form in edit mode |
 | `/stats` | `StatsPage` | Stacked bar charts of distance and time per week and sport (Recharts) |
+| `/import` | `ImportPage` | Upload a CSV file of workouts; shows the number imported, or the errors per row |
 
 Every page shares a layout (`App.tsx`) with the navigation and `ConnectionStatus`, which checks the API every 10 seconds.
 
@@ -23,7 +24,7 @@ Every page shares a layout (`App.tsx`) with the navigation and `ConnectionStatus
 |---|---|
 | `src/api/client.ts` | `request()`: every call to the API goes through here. Builds the URL from `VITE_API_URL`, applies a timeout, and turns each failure into a named error |
 | `src/api/api-error.ts` | `ApiError` (the API answered with an error), `NetworkError` (no answer), `RequestCancelledError` (aborted on purpose) |
-| `src/api/workout-api.ts` | One function per endpoint (`getWorkouts`, `createWorkout`, `updateWorkout`, `deleteWorkout`, …); `PAGE_SIZE` |
+| `src/api/workout-api.ts` | One function per endpoint (`getWorkouts`, `createWorkout`, `uploadWorkouts`, `getWeeklyStats`, …); `PAGE_SIZE` |
 | `src/api/workout-types.ts` | The `Workout` type and a runtime check of every response, since TypeScript types disappear at runtime |
 | `src/api/error-message.ts` | Turns any error into a message for the user |
 | `src/forms/` | The add/edit form and its validation, which mirrors the server's rules |
@@ -35,6 +36,7 @@ Every page shares a layout (`App.tsx`) with the navigation and `ConnectionStatus
 - **Every state is shown:** loading, error with **Try again**, empty, and data. An empty list distinguishes "no workouts yet", "no matches for this filter" and "page out of range".
 - **Outdated requests are cancelled.** Each list or detail load runs in an effect with its own `AbortController`; changing a filter aborts the previous request, so an old answer can't overwrite a newer one.
 - **The server stays the authority.** The form validates in the browser for quick feedback, and maps the server's field errors back to the right input. If a save can't be confirmed (no answer), it says so instead of claiming failure.
+- **Imports are all or nothing.** The import page checks file type and size before uploading, lists the server's errors per row, and says "couldn't confirm" when the answer is lost, so a second upload doesn't create duplicates.
 - **Accessible forms:** labels, `aria-invalid`, `aria-describedby`, `role="alert"` for errors, `role="status"` for updates.
 
 ## Configuration

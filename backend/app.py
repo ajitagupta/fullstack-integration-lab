@@ -10,6 +10,8 @@ app = Flask(__name__)
 
 CORS(app, origins=os.environ.get("CORS_ORIGINS", "http://localhost:5173").split(","))
 MAX_LIMIT = 100
+app.config["MAX_CONTENT_LENGTH"] = 1 * 1024 * 1024    # 1 MB: Flask rejects larger requests with 413
+MAX_IMPORT_ROWS = 1000
 ALLOWED_SPORTS = ["swim", "run", "badminton", "cycle", "strength", "rest"]
 SORT_FIELDS = ["id", "distance_km", "duration_min"]
 
@@ -19,6 +21,10 @@ def error_response(errors, status=400):
 @app.errorhandler(404)
 def not_found(e):
     return error_response([{"error": "Not found."}], 404)
+
+@app.errorhandler(413)
+def too_large(e):
+    return error_response([{"field": "file", "error": "The file is larger than 1 MB."}], 413)
 
 def scheduled_job():
     count = db.count_workouts(None, None, None)
@@ -273,14 +279,26 @@ def validate_data(data):
 @app.route('/workouts/upload', methods=['POST'])
 def upload_workout():
 
-    file = request.files.get('file')
-
-    if file is None:
+    file = request.files.get("file")
+    if file is None or file.filename == "":
         return error_response([{"field": "file", "error": "No file provided."}])
+    if not file.filename.lower().endswith(".csv"):
+        return error_response([{"field": "file", "error": "Only .csv files are accepted."}])
 
-    text = file.read().decode("utf-8")
+    try:
+        text = file.read().decode("utf-8-sig")         # -sig: drops Excel's invisible BOM if present
+    except UnicodeDecodeError:
+        return error_response([{"field": "file", "error": "The file must be UTF-8 text."}])
+
     reader = csv.DictReader(io.StringIO(text))
+    if reader.fieldnames is None or "sport" not in reader.fieldnames:
+        return error_response([{"field": "file", "error": "The file needs a header row with at least a sport column."}])
+
     workouts = list(reader)
+    if not workouts:
+        return error_response([{"field": "file", "error": "The file has no workout rows."}])
+    if len(workouts) > MAX_IMPORT_ROWS:
+        return error_response([{"field": "file", "error": f"At most {MAX_IMPORT_ROWS} rows per file."}])
 
     cleaned = []
     errors = []

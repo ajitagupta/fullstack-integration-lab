@@ -117,11 +117,6 @@ function WorkoutsPage() {
           {" "}· {workout.distance_km ?? "—"} km · {workout.duration_min ?? "—"} min
         </p>
       ))}
-      {status === "success" && workouts.map((workout) => (
-        <p key={workout.id}>
-          <Link to={`/workouts/${workout.id}`}>{workout.sport}</Link> · {workout.distance_km ?? "—"} km
-        </p>
-      ))}
       {status === "success" && total > 0 && (
         <nav aria-label="Pagination">
           <button onClick={() => goToPage(page - 1)} disabled={page <= 1}>Previous</button>
