@@ -1,6 +1,6 @@
 # Frontend — Workout Tracker UI
 
-The browser app of the workout tracker: **React 19**, **TypeScript** and **Vite**, with **React Router**. It lists, filters, adds, edits and deletes workouts through the [backend API](../backend/README.md).
+The browser app of the workout tracker: **React 19**, **TypeScript** and **Vite**, with **React Router**. It lists, filters, adds, edits and deletes workouts, imports them from CSV files, and charts them per week, all through the [backend API](../backend/README.md).
 
 For the project overview, see the [main README](../README.md). Design decisions per milestone are in [`docs/`](../docs).
 
@@ -14,7 +14,7 @@ For the project overview, see the [main README](../README.md). Design decisions 
 | `/workouts/new` | `forms/WorkoutForm` | Add a workout |
 | `/workouts/:id/edit` | `EditWorkoutPage` | Loads the workout, then shows the same form in edit mode |
 | `/stats` | `StatsPage` | Stacked bar charts of distance and time per week and sport (Recharts) |
-| `/import` | `ImportPage` | Choose a CSV file, see a preview of every row (errors, already imported), then import the new rows (only when all rows are valid) |
+| `/import` | `ImportPage` | Choose a CSV file, see a preview of every row with its date and status (OK, error, already imported), then import the new rows (only when all rows are valid) |
 
 Every page shares a layout (`App.tsx`) with the navigation and `ConnectionStatus`, which checks the API every 10 seconds.
 

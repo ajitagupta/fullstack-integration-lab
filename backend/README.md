@@ -1,6 +1,6 @@
 # Backend — Workout API
 
-The REST API of the workout tracker: **Flask**, **SQLAlchemy 2.0**, **Alembic** and **PostgreSQL**. It stores workouts, validates every write, and serves a filtered, sorted and paginated list to the frontend.
+The REST API of the workout tracker: **Flask**, **SQLAlchemy 2.0**, **Alembic** and **PostgreSQL**. It stores workouts, validates every write, serves a filtered, sorted and paginated list, imports CSV files, and computes weekly stats.
 
 For the project overview, see the [main README](../README.md). Design decisions per milestone are in [`docs/`](../docs).
 
@@ -17,6 +17,8 @@ For the project overview, see the [main README](../README.md). Design decisions 
 | `POST` | `/workouts/upload/preview` | The same file checks as the upload; returns every row with its error and a duplicate flag, saves nothing | `200` |
 | `POST` | `/workouts/parse` | Import plain-text lines like "Went for a 6km run, 35 min", all or nothing | `201` |
 | `GET` | `/stats/weekly?weeks=8` | Totals per week and sport (workouts, km, minutes), computed in SQL; `weeks` 1–52 | `200` |
+
+An example import file is in [`samples/workouts-example.csv`](../samples/workouts-example.csv).
 
 **List parameters** for `GET /workouts`:
 
