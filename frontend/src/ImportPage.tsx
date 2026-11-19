@@ -1,6 +1,6 @@
 import { useEffect, useState, type ChangeEvent } from "react";
 import { Link } from "react-router-dom";
-import { previewUpload, uploadWorkouts } from "./api/workout-api";
+import { previewUpload, uploadWorkouts, type ImportResult } from "./api/workout-api";
 import type { UploadPreview } from "./api/workout-types";
 import { ApiError, NetworkError, RequestCancelledError } from "./api/api-error";
 import { errorMessage } from "./api/error-message";
@@ -19,7 +19,7 @@ function ImportPage() {
   const [preview, setPreview] = useState<UploadPreview | null>(null);
   const [checking, setChecking] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [inserted, setInserted] = useState<number | null>(null);
+  const [result, setResult] = useState<ImportResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const fileProblem = fileProblemOf(file);
@@ -42,7 +42,7 @@ function ImportPage() {
   function chooseFile(e: ChangeEvent<HTMLInputElement>) {
     setFile(e.target.files?.[0] ?? null);
     setPreview(null);
-    setInserted(null);
+    setResult(null);
     setError(null);
   }
 
@@ -51,7 +51,7 @@ function ImportPage() {
     setUploading(true);
     setError(null);
     try {
-      setInserted(await uploadWorkouts(file));
+      setResult(await uploadWorkouts(file));
       setPreview(null);
     } catch (err) {
       if (err instanceof NetworkError) {
@@ -66,7 +66,8 @@ function ImportPage() {
     }
   }
 
-  const canImport = preview !== null && preview.invalid === 0 && !uploading;
+  const newRows = preview ? preview.valid - preview.duplicates : 0;
+  const canImport = preview !== null && preview.invalid === 0 && newRows > 0 && !uploading;
 
   return (
     <>
@@ -83,7 +84,9 @@ function ImportPage() {
       {preview && (
         <>
           <p role="status">
-            {preview.valid} rows ready{preview.invalid > 0 && `, ${preview.invalid} with errors. Fix them in the file and choose it again`}.
+            {newRows} new rows
+            {preview.duplicates > 0 && `, ${preview.duplicates} already imported (will be skipped)`}
+            {preview.invalid > 0 && `, ${preview.invalid} with errors. Fix them in the file and choose it again`}.
           </p>
           <table>
             <thead>
@@ -96,20 +99,22 @@ function ImportPage() {
                   <td>{r.sport ?? "—"}</td>
                   <td>{r.distance_km ?? "—"}</td>
                   <td>{r.duration_min ?? "—"}</td>
-                  <td>{r.error ? `${r.error.field}: ${r.error.error}` : "OK"}</td>
+                  <td>{r.error ? `${r.error.field}: ${r.error.error}` : r.duplicate ? "Already imported" : "OK"}</td>
                 </tr>
               ))}
             </tbody>
           </table>
           <button onClick={handleImport} disabled={!canImport}>
-            {uploading ? "Importing…" : `Import ${preview.valid} workouts`}
+            {uploading ? "Importing…" : `Import ${newRows} workouts`}
           </button>
         </>
       )}
 
-      {inserted !== null && (
+      {result !== null && (
         <p role="status">
-          Imported {inserted} workouts. <Link to="/workouts">See your workouts</Link>
+          Imported {result.inserted} workouts
+          {result.skipped > 0 && `, skipped ${result.skipped} already imported`}.{" "}
+          <Link to="/workouts">See your workouts</Link>
         </p>
       )}
     </>

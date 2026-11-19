@@ -168,3 +168,31 @@ def test_preview_rejects_bad_files_like_upload(client):
     response = preview(client, b"distance_km\n5\n")
     assert response.status_code == 400
     assert response.get_json()["errors"][0]["field"] == "file"
+
+def test_upload_uses_performed_on(client):
+    response = upload(client, b"sport,distance_km,duration_min,performed_on\nrun,5,30,2026-11-02\n")
+    assert response.status_code == 201
+    stats = client.get("/stats/weekly?weeks=52").get_json()["stats"]
+    assert stats[0]["week_start"] == "2026-11-02"
+
+def test_upload_rejects_invalid_date(client):
+    response = upload(client, b"sport,distance_km,duration_min,performed_on\nrun,5,30,2026-13-40\n")
+    assert response.status_code == 400
+    assert response.get_json()["errors"][0]["field"] == "performed_on"
+
+def test_second_upload_skips_duplicates(client):
+    csv_file = b"sport,distance_km,duration_min,performed_on\nrun,5,30,2026-11-02\nswim,1.5,40,2026-11-03\n"
+    first = upload(client, csv_file)
+    second = upload(client, csv_file)
+
+    assert first.get_json() == {"inserted": 2, "skipped": 0}
+    assert second.get_json() == {"inserted": 0, "skipped": 2}
+    assert client.get("/workouts").get_json()["total"] == 2        # not 4
+
+def test_preview_marks_duplicates(client):
+    upload(client, b"sport,distance_km,duration_min,performed_on\nrun,5,30,2026-11-02\n")
+    response = preview(client, b"sport,distance_km,duration_min,performed_on\nrun,5,30,2026-11-02\nrun,8,45,2026-11-02\n")
+
+    body = response.get_json()
+    assert [r["duplicate"] for r in body["rows"]] == [True, False]
+    assert body["duplicates"] == 1

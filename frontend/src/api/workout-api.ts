@@ -62,15 +62,18 @@ export async function getWeeklyStats(weeks: number, signal?: AbortSignal): Promi
   return parseWeeklyStats(data);
 }
 
-export async function uploadWorkouts(file: File): Promise<number> {
-  const body = new FormData();
-  body.append("file", file);                       // "file" = the name Flask reads: request.files.get("file")
+export type ImportResult = { inserted: number; skipped: number };
 
+export async function uploadWorkouts(file: File): Promise<ImportResult> {
+  const body = new FormData();
+  body.append("file", file);
   const data = await request("/workouts/upload", { method: "POST", body });
-  if (typeof data !== "object" || data === null || typeof (data as { inserted?: unknown }).inserted !== "number") {
-    throw new InvalidResponseError("inserted must be a number.");
+
+  const result = data as { inserted?: unknown; skipped?: unknown };
+  if (typeof result?.inserted !== "number" || typeof result?.skipped !== "number") {
+    throw new InvalidResponseError("inserted and skipped must be numbers.");
   }
-  return (data as { inserted: number }).inserted;
+  return { inserted: result.inserted, skipped: result.skipped };
 }
 
 export async function previewUpload(file: File, signal?: AbortSignal): Promise<UploadPreview> {

@@ -6,7 +6,7 @@
 
 | | |
 |---|---|
-| Status | Sessions 1–2 of 4 done |
+| Status | Sessions 1–3 of 4 done |
 | Endpoints | `POST /workouts/upload/preview`, `POST /workouts/upload` (`multipart/form-data`, field `file`) |
 | Page | `/import` |
 | Example file | [`samples/workouts-example.csv`](../samples/workouts-example.csv) |
@@ -90,9 +90,47 @@ A bad **file** still gets `400` (or `413`); a file with bad **rows** gets `200` 
 - **2 new backend tests** (41 in total): a preview reports every row with `valid`/`invalid` counts and saves nothing (`total` stays 0); a bad file gets the same `400` as the upload.
 - In the browser: the example file shows 2 rows marked OK and imports both; a file with a missing distance in row 2 shows that row in red and the button stays disabled; a `.txt` file shows no table.
 
-## Session 3: Confirm
+## Session 3: Dates and duplicates
 
-_(planned)_
+**The problem:** importing the same file twice saved every workout again: double runs, double stats.
+
+### Dates in the CSV
+
+An optional `performed_on` column (`2026-11-19`) puts imported workouts into the right week of the stats. Rows without it get today's date, as before.
+
+- `to_date()` works like `to_number()`: an empty value becomes `None`, a value that isn't a date stays text, and validation reports it (field `performed_on`).
+- **`None` is not "no value":** passing `performed_on=None` to the model makes SQLAlchemy send `NULL`, which the `NOT NULL` column rejects. The key is left out instead, so the database default (today) applies.
+- **Two forms of the date:** the database needs a `date` object, JSON needs text. The preview sends a copy of each row with the date as `"2026-11-02"`; validation and the insert keep the real `date`.
+
+### The duplicate policy
+
+A row is a **duplicate** if a workout with the same **sport, distance, duration and date** already exists. Rows without a date are compared as "today", since that's the date they would get.
+
+| | Preview | Import |
+|---|---|---|
+| New row | "OK" | saved |
+| Duplicate | "Already imported" | skipped |
+| Invalid row | the error | nothing is saved (all or nothing) |
+
+The import answers `{"inserted": 2, "skipped": 1}`; the preview adds a `duplicates` count and a `duplicate` flag per row.
+
+### Decisions
+
+- **Skip, don't reject.** A file with some already-imported rows is usually an export that overlaps with the last one. Importing the new rows and naming the skipped ones is more useful than refusing the whole file.
+- **One query per file:** `existing_workout_keys(dates)` loads every existing workout on the file's dates at once, as a set of tuples, so each row's check is a lookup. 1,000 rows means 1 query, not 1,000.
+- **Identical rows within one file are both imported.** Two identical 5 km runs on one day are possible; only the database decides what already exists.
+- **The import button counts only new rows** ("Import 2 workouts") and is disabled when there are none.
+
+### Verified
+
+- **5 new backend tests** (44 in total): a date from the file lands in the right week; an invalid date (`2026-13-40`) is rejected with field `performed_on`; the second upload of the same file inserts 0 and skips 2, and the total stays at 2; the preview flags the duplicate row and counts it.
+- In the browser: a file imported a second time shows "Already imported" on every row, "0 new rows", and a disabled button.
+
+### Bugs found
+
+- **`Date` instead of `date`:** SQLAlchemy's column type `Date` has no `fromisoformat`; the Python type `date` from `datetime` does.
+- **A copy, not the original:** converting the date to text directly in the cleaned row would have made validation report "must be a date" for every valid date. The preview converts a copy (`{**clean}`).
+- **Two status cells:** the old status `<td>` stayed next to the new one, so each table row had six cells under five headings.
 
 ## Session 4: Summary and tests
 

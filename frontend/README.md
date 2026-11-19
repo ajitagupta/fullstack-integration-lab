@@ -14,7 +14,7 @@ For the project overview, see the [main README](../README.md). Design decisions 
 | `/workouts/new` | `forms/WorkoutForm` | Add a workout |
 | `/workouts/:id/edit` | `EditWorkoutPage` | Loads the workout, then shows the same form in edit mode |
 | `/stats` | `StatsPage` | Stacked bar charts of distance and time per week and sport (Recharts) |
-| `/import` | `ImportPage` | Choose a CSV file, see a preview of every row with its errors, then import it (only when all rows are valid) |
+| `/import` | `ImportPage` | Choose a CSV file, see a preview of every row (errors, already imported), then import the new rows (only when all rows are valid) |
 
 Every page shares a layout (`App.tsx`) with the navigation and `ConnectionStatus`, which checks the API every 10 seconds.
 

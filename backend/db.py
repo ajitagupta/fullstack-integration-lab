@@ -89,7 +89,10 @@ def add_workouts(workouts):
     # one transaction: commits at the end, rolls back on any error
     with SessionLocal.begin() as session:
         for data in workouts:
-            workout = Workout(sport=data["sport"], duration_min=data.get("duration_min"), distance_km=data.get("distance_km"))         # from data; distance and duration may be missing
+            fields = {"sport": data["sport"], "distance_km": data.get("distance_km"), "duration_min": data.get("duration_min")}
+            if data.get("performed_on") is not None:
+                fields["performed_on"] = data.get("performed_on")
+            workout = Workout(**fields)
             session.add(workout)
 
     return len(workouts)             # an exception inside the block → ROLLBACK, nothing saved
@@ -118,4 +121,12 @@ def weekly_stats(weeks):
          "distance_km": round(r.distance_km, 1), "duration_min": r.duration_min}
         for r in rows
     ]
-        
+
+def existing_workout_keys(dates):
+    """All (sport, distance_km, duration_min, performed_on) on the given dates, as a set."""
+    stmt = select(Workout.sport, Workout.distance_km, Workout.duration_min, Workout.performed_on).where(
+        Workout.performed_on.in_(dates)              # only the dates that appear in the file
+    )
+    with SessionLocal() as session:
+        rows = session.execute(stmt).all()
+    return {tuple(r) for r in rows}

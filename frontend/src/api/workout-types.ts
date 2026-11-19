@@ -98,12 +98,14 @@ export type PreviewRow = {
   distance_km: number | string | null;      // a string when the file had text instead of a number
   duration_min: number | string | null;
   error: { field: string; error: string } | null;
+  duplicate: boolean;
 };
 
-export type UploadPreview = { rows: PreviewRow[]; valid: number; invalid: number };
+export type UploadPreview = { rows: PreviewRow[]; valid: number; invalid: number; duplicates: number };
 
 export function parseUploadPreview(value: unknown): UploadPreview {
-  if (!isObject(value) || !Array.isArray(value.rows) || typeof value.valid !== "number" || typeof value.invalid !== "number")
+  if (!isObject(value) || !Array.isArray(value.rows) || typeof value.valid !== "number"
+      || typeof value.invalid !== "number" || typeof value.duplicates !== "number")
     throw new InvalidResponseError("The preview has an unexpected shape.");
-  return { rows: value.rows as PreviewRow[], valid: value.valid, invalid: value.invalid };
+  return { rows: value.rows as PreviewRow[], valid: value.valid, invalid: value.invalid, duplicates: value.duplicates};
 }

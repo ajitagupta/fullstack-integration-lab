@@ -5,6 +5,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 import cache
 import re
 from flask_cors import CORS
+from datetime import date
 
 app = Flask(__name__)
 
@@ -234,6 +235,13 @@ def delete_workout(workout_id):
 import csv
 import io
 
+def to_date(value):
+    if not value:
+        return None                       # empty → no date
+    try:
+        return date.fromisoformat(value)                       # turn "2026-11-02" into a date object (hint: date.fromisoformat)
+    except ValueError:
+        return value                     # keep the text; validate_data() reports it
 
 def to_number(value):
     if not value:
@@ -249,13 +257,15 @@ def clean_row(row):
     return {
         "sport": row.get("sport"),
         "distance_km": to_number(distance_km),
-        "duration_min": to_number(duration_min)
+        "duration_min": to_number(duration_min),
+        "performed_on": to_date(row.get("performed_on")),
     }
 
 def validate_data(data):
     sport = data.get("sport")
     distance_km = data.get("distance_km")
     duration_min = data.get("duration_min")
+    performed_on = data.get("performed_on")
 
     if sport not in ALLOWED_SPORTS:
         return {"field": "sport", "error": "The key sport is invalid. Must be swim, run, badminton, cycle, strength, or rest."}
@@ -273,6 +283,9 @@ def validate_data(data):
         return {"field": "duration_min", "error": "The key duration_min is missing."}
     if distance_km is None and sport in ["run", "swim", "cycle"]:
         return {"field": "distance_km", "error": "The key distance_km is missing."}
+
+    if performed_on is not None and not isinstance(performed_on, date):
+        return {"field": "performed_on", "error": "The key performed_on must be a date like 2026-11-19."}
 
     return None
 
@@ -301,11 +314,23 @@ def read_csv_upload():
 
 
 def check_rows(raw_rows):
-    """Cleans and validates every row; keeps the result per row."""
+    """Cleans and validates every row; marks rows that already exist."""
+    cleaned = [clean_row(raw) for raw in raw_rows]
+    errors = [validate_data(c) for c in cleaned]
+
+    def key(c):
+        return (c["sport"], c["distance_km"], c["duration_min"], c["performed_on"] or date.today())
+
+    dates = {key(c)[3] for c, e in zip(cleaned, errors) if e is None}     # dates of the valid rows
+    existing = db.existing_workout_keys(dates) if dates else set()
+
     checked = []
-    for i, raw in enumerate(raw_rows, start=1):
-        clean = clean_row(raw)
-        checked.append({"row": i, **clean, "error": validate_data(clean)})
+    for i, (clean, error) in enumerate(zip(cleaned, errors), start=1):
+        shown = {**clean}
+        if isinstance(shown["performed_on"], date):
+            shown["performed_on"] = shown["performed_on"].isoformat()
+        duplicate = error is None and key(clean) in existing               # is this row's key already in the database?
+        checked.append({"row": i, **shown, "error": error, "duplicate": duplicate})
     return checked
 
 
@@ -320,10 +345,11 @@ def upload_workout():
     if errors:
         return error_response(errors)            # all or nothing
 
-    workouts = [{"sport": c["sport"], "distance_km": c["distance_km"], "duration_min": c["duration_min"]} for c in checked]
-    count = db.add_workouts(workouts)
+    new_rows = [raw for raw, c in zip(rows, checked) if not c["duplicate"]]
+    workouts = [clean_row(r) for r in new_rows]
+    count = db.add_workouts(workouts) if workouts else 0
     cache.clear()
-    return jsonify({"inserted": count}), 201
+    return jsonify({"inserted": count, "skipped": len(rows) - count}), 201
 
 @app.post("/workouts/upload/preview")
 def preview_upload():
@@ -333,7 +359,8 @@ def preview_upload():
 
     checked = check_rows(rows)
     invalid = sum(1 for c in checked if c["error"])
-    return jsonify({"rows": checked, "valid": len(checked) - invalid, "invalid": invalid}), 200
+    duplicates = sum(1 for c in checked if c["duplicate"])
+    return jsonify({"rows": checked, "valid": len(checked) - invalid, "invalid": invalid, "duplicates": duplicates}), 200
 
 @app.get("/stats/weekly")
 def get_weekly_stats():
