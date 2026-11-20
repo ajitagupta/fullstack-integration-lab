@@ -6,13 +6,63 @@ class ImportFileError(Exception):
     """The file can't be read as this format. The message is shown to the user."""
 
 
-def csv_rows(data: bytes) -> list[dict]:
-    text = data.decode("utf-8-sig")                     # UnicodeDecodeError is handled by the caller
-    reader = csv.DictReader(io.StringIO(text))
-    if reader.fieldnames is None or "sport" not in reader.fieldnames:
-        raise ImportFileError("The file needs a header row with at least a sport column.")
-    return list(reader)
+from datetime import datetime
 
+STRAVA_TYPES = {
+    "run": "run", "trail run": "run",
+    "ride": "cycle", "virtual ride": "cycle",
+    "swim": "swim",
+    "weight training": "strength",
+    "badminton": "badminton",
+}
+
+
+def csv_rows(data: bytes) -> list[dict]:
+    text = data.decode("utf-8-sig")
+    reader = csv.reader(io.StringIO(text))
+    header = next(reader, None)                                          # the first line, or None for an empty file
+    body = [row for row in reader if any(cell.strip() for cell in row)]  # skip blank lines
+
+    if header is not None and "Activity Type" in header:
+        return strava_rows(header, body)
+    if header is None or "sport" not in header:
+        raise ImportFileError("The file needs a header row with at least a sport column.")
+    return [dict(zip(header, row)) for row in body]                     # your own format, as before
+
+
+def strava_rows(header: list[str], body: list[list[str]]) -> list[dict]:
+    def column(row, name):
+        """The value in the FIRST column with this name (Strava repeats some names)."""
+        if name not in header:
+            return ""
+        i = header.index(name)             # .index() returns the first match
+        return row[i] if i < len(row) else ""
+
+    rows = []
+    for row in body:
+        activity = column(row, "Activity Type").strip().lower()
+        seconds = column(row, "Moving Time") or column(row, "Elapsed Time")
+        rows.append({
+            "sport": STRAVA_TYPES.get(activity, activity),
+            "distance_km": column(row, "Distance"),
+            "duration_min": seconds_to_minutes(seconds),
+            "performed_on": strava_date(column(row, "Activity Date")),
+        })
+    return rows
+
+
+def seconds_to_minutes(text: str) -> str:
+    try:
+        return str(round(float(text) / 60))
+    except ValueError:
+        return text            # empty or not a number: validation reports it
+
+
+def strava_date(text: str) -> str:
+    try:
+        return datetime.strptime(text, "%b %d, %Y, %I:%M:%S %p").date().isoformat()
+    except ValueError:
+        return text            # unknown format: validation reports "must be a date"
 
 import math
 from datetime import datetime

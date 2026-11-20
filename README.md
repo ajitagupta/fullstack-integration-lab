@@ -145,10 +145,16 @@ Every feature crosses the same line: **browser → API → database**.
 
 *What makes it yours.*
 
-### 9. Bring your data 🔜 _(milestone 14)_
-**Why it matters:** nobody starts from zero. Years of workouts already live in Garmin and Strava.
+### 9. Bring your data
+**Why it matters:** most workouts are already recorded by a watch or an app. Reading the files they export means nothing has to be typed in twice.
+**Key question:** *How do you add a new import format without touching the code that already works?* One converter per format turns the file into the same rows a CSV produces; validation, preview and the duplicate check are shared.
 
-- _Import Garmin and Strava export files (GPX, FIT, CSV), with no API keys needed_
+- GPX tracks from Garmin or Strava: distance and duration computed from the GPS points
+- FIT files from Garmin watches, one workout per session
+- Strava's `activities.csv` export, recognised by its header
+
+📄 [14-activity-files](docs/14-activity-files.md)
+
 
 ### 10. Just type it 🔜 _(milestone 08)_
 **Why it matters:** typing a sentence is faster than filling in three fields.
@@ -165,30 +171,6 @@ Every feature crosses the same line: **browser → API → database**.
 **Why it matters:** _new activities appear without exporting anything_
 
 - _OAuth login, token refresh, webhooks for new activities_
-
----
-
-## All milestones
-
-| # | Milestone | Stage | Status |
-|---|---|---|---|
-| 00 | Baseline: tests, journeys, API contract | 1 Store | Done |
-| 01 | PostgreSQL persistence | 1 Store | Done |
-| 02 | Docker | 2 Package | Done |
-| 03 | Browser–API boundary | 3 Connect & go live | Done |
-| 04 | First vertical slice + deployment | 3 Connect & go live | Done |
-| 05 | Add, validate, edit & delete workouts | 5 Add & edit | Done |
-| 06 | Search, filters & pagination | 6 Find | Done |
-| 07 | CSV import | 8 Import | Done |
-| 08 | Natural-language entry | 10 Just type it | 🔜 |
-| 09 | Diagnose failures | 4 Run reliably | 🔜 |
-| 10 | Test the integrated system | 4 Run reliably | 🔜 |
-| 11 | Delivery & deployment | 4 Run reliably | 🔜 |
-| 12 | Documentation & case study | (this README) | 🔜 |
-| 13 | Stats & charts | 7 See progress | Done |
-| 14 | Garmin & Strava file import | 9 Bring your data | 🔜 |
-| 15 | Live sync *(optional)* | 12 Live sync | 🔜 |
-| 16 | Look good: Bootstrap & theme | 11 Look good | 🔜 |
 
 ---
 

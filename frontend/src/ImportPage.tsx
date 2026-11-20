@@ -15,6 +15,10 @@ function fileProblemOf(file: File | null): string | null {
   return null;
 }
 
+function workoutCount(n: number) {
+  return n === 1 ? "1 workout" : `${n} ???`;
+}
+
 function ImportPage() {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<UploadPreview | null>(null);
@@ -75,7 +79,7 @@ function ImportPage() {
       <h1>Import workouts</h1>
       <p>
         A <strong>CSV</strong> file with the columns <code>sport</code>, <code>distance_km</code>, <code>duration_min</code>,
-        and optionally <code>performed_on</code> (e.g. 2026-11-19), or a <strong>GPX</strong> file exported from Garmin or Strava.
+        and optionally <code>performed_on</code> (e.g. 2026-11-19), or a <strong>GPX</strong> file exported from Garmin or Strava. Strava's activities.csv export works too.
         Up to 1,000 rows, 1 MB.
       </p>
       

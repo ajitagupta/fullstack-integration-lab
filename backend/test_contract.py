@@ -240,3 +240,15 @@ def test_upload_rejects_broken_fit(client):
     response = upload(client, b"this is not a fit file", "ride.fit")
     assert response.status_code == 400
     assert response.get_json()["errors"][0]["field"] == "file"
+
+def test_preview_reads_strava_export(client):
+    with open(os.path.join(SAMPLES, "strava-activities.csv"), "rb") as f:
+        response = preview(client, f.read(), "activities.csv")
+    rows = response.get_json()["rows"]
+    assert [(r["sport"], r["distance_km"], r["duration_min"], r["performed_on"]) for r in rows] == [
+        ("run", 6.1, 32.0, "2026-11-10"),          # 6.1 km, not 6100: the FIRST "Distance" column
+        ("cycle", 25.4, 60.0, "2026-11-12"),
+        ("swim", 1.8, 40.0, "2026-11-13"),
+        ("strength", 0.0, 55.0, "2026-11-15"),
+    ]
+    assert all(r["error"] is None for r in rows)

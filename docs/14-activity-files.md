@@ -6,10 +6,10 @@
 
 | | |
 |---|---|
-| Status | Sessions 1–2 of 3 done |
+| Status | Done (3 sessions) |
 | Endpoints | `POST /workouts/upload/preview`, `POST /workouts/upload` (unchanged; the file extension picks the format) |
 | Page | `/import` |
-| Example files | [`samples/morning-run.gpx`](../samples/morning-run.gpx), [`samples/evening-ride.fit`](../samples/evening-ride.fit) |
+| Example files | [`samples/morning-run.gpx`](../samples/morning-run.gpx), [`samples/evening-ride.fit`](../samples/evening-ride.fit), [`samples/strava-activities.csv`](../samples/strava-activities.csv) |
 
 ---
 
@@ -88,4 +88,42 @@ Adding the format meant one function and one line in `CONVERTERS`. Nothing else 
 
 ## Session 3: Strava CSV
 
-_(planned)_
+### The problem
+
+Strava's bulk export (`activities.csv`) is a CSV, just like the app's own format, so the file extension can't tell them apart. It differs in almost everything else:
+
+| | The app's CSV | Strava |
+|---|---|---|
+| Columns | `sport`, `distance_km`, `duration_min`, `performed_on` | `Activity Type`, `Distance`, `Moving Time`, `Activity Date`, and many more |
+| Sport | `run`, `cycle` | `Run`, `Ride`, `Weight Training` |
+| Duration | minutes | seconds |
+| Date | `2026-11-10` | `Nov 10, 2026, 6:45:12 AM` |
+
+### How it's read
+
+`csv_rows` reads the header itself. If it contains `Activity Type`, the file goes to `strava_rows`, which maps each row to the app's fields; otherwise it's the app's own format, as before. Both end up as the same text rows, so validation, preview and the duplicate check stay unchanged.
+
+### Decisions
+
+- **Detect the format by content, not by name.** Two formats share the `.csv` extension, so the header decides.
+- **The first column with a name wins.** Strava repeats column names: `Distance` appears twice, first in km (`6.10`), later in metres (`6100.0`). Python's `DictReader` keeps the **last** one, which would have turned a 6 km run into 6,100 km. The header is read with `csv.reader`, and `header.index(name)` returns the first match.
+- **Moving time first,** falling back to elapsed time, consistent with the FIT import.
+- **Dates parsed with a pattern** (`strptime` with `%b %d, %Y, %I:%M:%S %p`). Values that don't fit stay text, and validation reports them, like every other bad value.
+- **"1 workout", not "1 workouts":** a small `workoutCount` helper on the import page.
+
+### Verified
+
+- **1 new backend test** (50 in total): the sample export is read as run 6.1 km/32 min, cycle 25.4 km/60 min, swim 1.8 km/40 min and strength 0 km/55 min, with the right dates and no errors. All earlier CSV tests passed unchanged with the new `csv_rows`.
+- In the browser: the sample export shows 4 rows marked OK, imports with "Imported 4 workouts", and the week of 9 November in the stats grows accordingly.
+
+---
+
+## Summary
+
+**Key question answered:** *How do you add a new import format without touching the code that already works?* With one converter per format, chosen from a table by file extension (or, for CSV, by header). A converter turns a file into the same text rows a CSV produces; validation, preview, duplicate check and the all-or-nothing insert are shared. GPX, FIT and the Strava export each added one function, and the existing tests passed unchanged every time.
+
+| Session | Result |
+|---|---|
+| 1 | The converter table; GPX tracks read with `defusedxml`, distance and duration computed from the points |
+| 2 | FIT files read with `fitdecode`, one workout per session |
+| 3 | Strava's CSV export detected by its header and mapped, including its repeated column names |

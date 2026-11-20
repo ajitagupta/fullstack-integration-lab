@@ -1,6 +1,6 @@
 # Frontend — Workout Tracker UI
 
-The browser app of the workout tracker: **React 19**, **TypeScript** and **Vite**, with **React Router**. It lists, filters, adds, edits and deletes workouts, imports them from CSV, GPX and FIT files, and charts them per week, all through the [backend API](../backend/README.md).
+The browser app of the workout tracker: **React 19**, **TypeScript** and **Vite**, with **React Router**. It lists, filters, adds, edits and deletes workouts, imports them from CSV, GPX and FIT files (including Strava's export), and charts them per week, all through the [backend API](../backend/README.md).
 
 For the project overview, see the [main README](../README.md). Design decisions per milestone are in [`docs/`](../docs).
 
