@@ -23,6 +23,8 @@ A React + TypeScript frontend and a Flask API on PostgreSQL, built in three part
 
 Every feature crosses the same line: **browser → API → database**.
 
+**Status:** stages 1–3 and 5–10 are done. Stage 4 (*Run reliably*: logs, end-to-end tests, CI/CD) and stage 11 (*Look good*) are in progress; stage 12 (*Live sync*) is optional.
+
 ---
 
 | You want… | Read this | Time |
@@ -41,6 +43,7 @@ Every feature crosses the same line: **browser → API → database**.
 - **Deployed on three services:** Vercel (frontend), Render (API), Neon (PostgreSQL).
 - **Debugged in production:** a stale-connection bug found by tracing one request through all three services, and fixed (see [stage 3](#3-connect--go-live)).
 - **Validation on both sides:** instant feedback in the browser, with the server as the authority.
+- **Untrusted input handled in one pipeline:** CSV, GPX and FIT files and typed text all become the same rows, with one preview, one validation and one duplicate check.
 - **Tested at every layer:** pytest against a real test database, Vitest, Playwright end to end.
 
 **Stack:** React · TypeScript · Vite · Flask · SQLAlchemy 2.0 · Alembic · PostgreSQL · Docker · Vercel · Render · Neon · pytest · Vitest · Playwright
@@ -155,11 +158,15 @@ Every feature crosses the same line: **browser → API → database**.
 
 📄 [14-activity-files](docs/14-activity-files.md)
 
+### 10. Just type it
+**Why it matters:** "ran 5 km in 30 min" is how people already note a workout. A form with four fields is slower than typing one line.
+**Key question:** *How do you accept free text without accepting anything at all?* Parse leniently, validate strictly, and show the result before saving.
 
-### 10. Just type it 🔜 _(milestone 08)_
-**Why it matters:** typing a sentence is faster than filling in three fields.
+- One workout per line, understood by a small parser ("swam 1.5 km 40 min", "badminton 90 min")
+- The same preview, validation and duplicate check as file imports, because typed text is just another input format
+- A Quick add page: Check shows the preview, Save stores the new workouts
 
-- _"ran 5 km in 30 min" → a workout, checked by the same validation as the form_
+📄 [08-just-type-it](docs/08-just-type-it.md)
 
 ### 11. Look good 🔜 _(milestone 16)_
 **Why it matters:** a clean, consistent interface is the first thing anyone notices.
@@ -213,6 +220,11 @@ Open http://localhost:5173. More commands (migrations, seed data, tests, reset) 
 | `pool_pre_ping` for Neon | Serverless databases close idle connections | [04](docs/04-first-vertical-slice.md) |
 | Cold start accepted, not engineered around | A free-tier hosting limit, documented instead of hidden | [04](docs/04-first-vertical-slice.md) |
 | Client errors in the API's shape | Server errors land in the same place on the form | [05](docs/05-forms-validation.md) |
+| Cancel outdated requests | An older answer must never overwrite a newer one | [06](docs/06-search-pagination.md) |
+| Indexes chosen from measurements | Measured with `EXPLAIN ANALYZE` at 100,000 rows before adding any | [06](docs/06-search-pagination.md) |
+| Totals computed in SQL | The database returns a few dozen sums instead of every row | [13](docs/13-stats.md) |
+| Preview before every import, all or nothing | One bad row must not leave half a file saved | [07](docs/07-csv-import.md) |
+| One converter per input format | A new format is one function; the shared pipeline stays untouched | [14](docs/14-activity-files.md) |
 | _more as the parts are built_ | | |
 
 ---
