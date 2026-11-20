@@ -150,8 +150,8 @@ def test_upload_rejects_large_file(client):
     assert response.status_code == 413
     assert response.get_json()["errors"][0]["field"] == "file"
 
-def preview(client, content: bytes):
-    data = {"file": (io.BytesIO(content), "workouts.csv")}
+def preview(client, content: bytes, filename="workouts.csv"):
+    data = {"file": (io.BytesIO(content), filename)}
     return client.post("/workouts/upload/preview", data=data, content_type="multipart/form-data")
 
 def test_preview_reports_every_row_and_saves_nothing(client):
@@ -207,3 +207,20 @@ def test_one_bad_row_saves_nothing(client):
     assert response.status_code == 400
     assert response.get_json()["errors"] == [{"row": 251, "field": "distance_km", "error": "The key distance_km is missing."}]
     assert client.get("/workouts").get_json()["total"] == 0      # not 499
+
+GPX = b"""<?xml version="1.0"?>
+<gpx xmlns="http://www.topografix.com/GPX/1/1" version="1.1"><trk><type>running</type><trkseg>
+<trkpt lat="47.000" lon="8.000"><time>2026-11-14T10:00:00Z</time></trkpt>
+<trkpt lat="47.009" lon="8.000"><time>2026-11-14T10:06:00Z</time></trkpt>
+</trkseg></trk></gpx>"""
+
+def test_preview_reads_gpx(client):
+    response = preview(client, GPX, "run.gpx")
+    row = response.get_json()["rows"][0]
+    assert (row["sport"], row["distance_km"], row["duration_min"], row["performed_on"]) == ("run", 1.0, 6.0, "2026-11-14")
+    assert row["error"] is None
+
+def test_upload_rejects_broken_gpx(client):
+    response = upload(client, b"<gpx><trk>", "run.gpx")
+    assert response.status_code == 400
+    assert response.get_json()["errors"][0]["field"] == "file"

@@ -6,10 +6,11 @@ import { ApiError, NetworkError, RequestCancelledError } from "./api/api-error";
 import { errorMessage } from "./api/error-message";
 
 const MAX_BYTES = 1024 * 1024;
+const ACCEPTED = [".csv", ".gpx"];
 
 function fileProblemOf(file: File | null): string | null {
   if (file === null) return null;
-  if (!file.name.toLowerCase().endsWith(".csv")) return "Only .csv files are accepted.";
+  if (!ACCEPTED.some((ext) => file.name.toLowerCase().endsWith(ext))) return `Accepted file types: ${ACCEPTED.join(", ")}.`;
   if (file.size > MAX_BYTES) return "The file is larger than 1 MB.";
   return null;
 }
@@ -72,10 +73,14 @@ function ImportPage() {
   return (
     <>
       <h1>Import workouts</h1>
-      <p>A CSV file with the columns <code>sport</code>, <code>distance_km</code>, <code>duration_min</code>, and optionally <code>performed_on</code> (e.g. 2026-11-19). Up to 1,000 rows, 1 MB.</p>
+      <p>
+        A <strong>CSV</strong> file with the columns <code>sport</code>, <code>distance_km</code>, <code>duration_min</code>,
+        and optionally <code>performed_on</code> (e.g. 2026-11-19), or a <strong>GPX</strong> file exported from Garmin or Strava.
+        Up to 1,000 rows, 1 MB.
+      </p>
       
-      <label htmlFor="csv-file">CSV file</label>
-      <input id="csv-file" type="file" accept=".csv,text/csv" onChange={chooseFile} />
+      <label htmlFor="csv-file">File</label>
+      <input id="csv-file" type="file" accept={ACCEPTED.join(",")} onChange={chooseFile} />
 
       {fileProblem && <p role="alert">{fileProblem}</p>}
       {error && <p role="alert">{error}</p>}

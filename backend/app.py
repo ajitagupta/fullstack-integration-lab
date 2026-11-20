@@ -6,6 +6,7 @@ import cache
 import re
 from flask_cors import CORS
 from datetime import date
+import importers
 
 app = Flask(__name__)
 
@@ -232,9 +233,6 @@ def delete_workout(workout_id):
     cache.clear()
     return "", 204          # 204 = success, no body
 
-import csv
-import io
-
 def to_date(value):
     if not value:
         return None                       # empty → no date
@@ -289,23 +287,25 @@ def validate_data(data):
 
     return None
 
-def read_csv_upload():
-    """Checks the uploaded file. Returns (rows, None), or (None, error response)."""
+def read_upload():
+    """Checks the uploaded file and converts it to rows. Returns (rows, None), or (None, error response)."""
     file = request.files.get("file")
     if file is None or file.filename == "":
         return None, error_response([{"field": "file", "error": "No file provided."}])
-    if not file.filename.lower().endswith(".csv"):
-        return None, error_response([{"field": "file", "error": "Only .csv files are accepted."}])
+
+    extension = os.path.splitext(file.filename.lower())[1]          # "Run.GPX" → ".gpx"
+    converter = importers.CONVERTERS.get(extension)
+    if converter is None:
+        accepted = ", ".join(importers.CONVERTERS)
+        return None, error_response([{"field": "file", "error": f"Accepted file types: {accepted}."}])
+
     try:
-        text = file.read().decode("utf-8-sig")
+        rows = converter(file.read())
     except UnicodeDecodeError:
         return None, error_response([{"field": "file", "error": "The file must be UTF-8 text."}])
+    except importers.ImportFileError as e:
+        return None, error_response([{"field": "file", "error": str(e)}])
 
-    reader = csv.DictReader(io.StringIO(text))
-    if reader.fieldnames is None or "sport" not in reader.fieldnames:
-        return None, error_response([{"field": "file", "error": "The file needs a header row with at least a sport column."}])
-
-    rows = list(reader)
     if not rows:
         return None, error_response([{"field": "file", "error": "The file has no workout rows."}])
     if len(rows) > MAX_IMPORT_ROWS:
@@ -336,7 +336,7 @@ def check_rows(raw_rows):
 
 @app.route("/workouts/upload", methods=["POST"])
 def upload_workout():
-    rows, problem = read_csv_upload()
+    rows, problem = read_upload()
     if problem:
         return problem
 
@@ -353,7 +353,7 @@ def upload_workout():
 
 @app.post("/workouts/upload/preview")
 def preview_upload():
-    rows, problem = read_csv_upload()
+    rows, problem = read_upload()
     if problem:
         return problem
 
