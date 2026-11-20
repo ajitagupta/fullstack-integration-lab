@@ -16,7 +16,7 @@ function fileProblemOf(file: File | null): string | null {
 }
 
 function workoutCount(n: number) {
-  return n === 1 ? "1 workout" : `${n} ???`;
+  return n === 1 ? "1 workout" : `${n} workouts`;
 }
 
 function ImportPage() {
@@ -79,7 +79,7 @@ function ImportPage() {
       <h1>Import workouts</h1>
       <p>
         A <strong>CSV</strong> file with the columns <code>sport</code>, <code>distance_km</code>, <code>duration_min</code>,
-        and optionally <code>performed_on</code> (e.g. 2026-11-19), or a <strong>GPX</strong> file exported from Garmin or Strava. Strava's activities.csv export works too.
+        and optionally <code>performed_on</code> (e.g. 2026-11-19), or a <strong>GPX</strong> or <strong>FIT</strong> file exported from Garmin or Strava. Strava's <code>activities.csv</code> export works too.
         Up to 1,000 rows, 1 MB.
       </p>
       
@@ -115,7 +115,7 @@ function ImportPage() {
             </tbody>
           </table>
           <button onClick={handleImport} disabled={!canImport}>
-            {uploading ? "Importing…" : `Import ${newRows} workouts`}
+            {uploading ? "Importing…" : `Import ${workoutCount(newRows)}`}
           </button>
         </>
       )}
