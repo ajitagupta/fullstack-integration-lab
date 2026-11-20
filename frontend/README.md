@@ -1,6 +1,6 @@
 # Frontend — Workout Tracker UI
 
-The browser app of the workout tracker: **React 19**, **TypeScript** and **Vite**, with **React Router**. It lists, filters, adds, edits and deletes workouts, imports them from CSV, GPX and FIT files (including Strava's export), and charts them per week, all through the [backend API](../backend/README.md).
+The browser app of the workout tracker: **React 19**, **TypeScript** and **Vite**, with **React Router**. It lists, filters, adds, edits and deletes workouts, imports them from CSV, GPX and FIT files (including Strava's export) or from typed text, and charts them per week, all through the [backend API](../backend/README.md).
 
 For the project overview, see the [main README](../README.md). Design decisions per milestone are in [`docs/`](../docs).
 
@@ -15,6 +15,7 @@ For the project overview, see the [main README](../README.md). Design decisions 
 | `/workouts/:id/edit` | `EditWorkoutPage` | Loads the workout, then shows the same form in edit mode |
 | `/stats` | `StatsPage` | Stacked bar charts of distance and time per week and sport (Recharts) |
 | `/import` | `ImportPage` | Choose a CSV, GPX or FIT file, see a preview of every row with its date and status (OK, error, already imported), then import the new rows (only when all rows are valid) |
+| `/quick-add` | `QuickAddPage` | Type workouts as text, one per line; **Check** shows the same preview as an import, **Save** stores the new ones |
 
 Every page shares a layout (`App.tsx`) with the navigation and `ConnectionStatus`, which checks the API every 10 seconds.
 
@@ -24,10 +25,11 @@ Every page shares a layout (`App.tsx`) with the navigation and `ConnectionStatus
 |---|---|
 | `src/api/client.ts` | `request()`: every call to the API goes through here. Builds the URL from `VITE_API_URL`, applies a timeout, and turns each failure into a named error |
 | `src/api/api-error.ts` | `ApiError` (the API answered with an error), `NetworkError` (no answer), `RequestCancelledError` (aborted on purpose) |
-| `src/api/workout-api.ts` | One function per endpoint (`getWorkouts`, `createWorkout`, `previewUpload`, `uploadWorkouts`, `getWeeklyStats`, …); `PAGE_SIZE` |
+| `src/api/workout-api.ts` | One function per endpoint (`getWorkouts`, `createWorkout`, `previewUpload`, `uploadWorkouts`, `previewText`, `importText`, `getWeeklyStats`, …); `PAGE_SIZE` |
 | `src/api/workout-types.ts` | The `Workout` type and a runtime check of every response, since TypeScript types disappear at runtime |
 | `src/api/error-message.ts` | Turns any error into a message for the user |
 | `src/forms/` | The add/edit form and its validation, which mirrors the server's rules |
+| `src/import/` | `PreviewTable`, shared by the Import and Quick add pages, and `workoutCount` |
 | `src/stats/` | The weekly chart and `toWeeklyChart`, which reshapes the API's rows for it |
 | `tests/` | Playwright end-to-end tests |
 

@@ -4,6 +4,7 @@ import { previewUpload, uploadWorkouts, type ImportResult } from "./api/workout-
 import type { UploadPreview } from "./api/workout-types";
 import { ApiError, NetworkError, RequestCancelledError } from "./api/api-error";
 import { errorMessage } from "./api/error-message";
+import { PreviewTable, workoutCount } from "./import/PreviewTable";
 
 const MAX_BYTES = 1024 * 1024;
 const ACCEPTED = [".csv", ".gpx", ".fit"];
@@ -13,10 +14,6 @@ function fileProblemOf(file: File | null): string | null {
   if (!ACCEPTED.some((ext) => file.name.toLowerCase().endsWith(ext))) return `Accepted file types: ${ACCEPTED.join(", ")}.`;
   if (file.size > MAX_BYTES) return "The file is larger than 1 MB.";
   return null;
-}
-
-function workoutCount(n: number) {
-  return n === 1 ? "1 workout" : `${n} workouts`;
 }
 
 function ImportPage() {
@@ -82,7 +79,7 @@ function ImportPage() {
         and optionally <code>performed_on</code> (e.g. 2026-11-19), or a <strong>GPX</strong> or <strong>FIT</strong> file exported from Garmin or Strava. Strava's <code>activities.csv</code> export works too.
         Up to 1,000 rows, 1 MB.
       </p>
-      
+
       <label htmlFor="csv-file">File</label>
       <input id="csv-file" type="file" accept={ACCEPTED.join(",")} onChange={chooseFile} />
 
@@ -97,23 +94,7 @@ function ImportPage() {
             {preview.duplicates > 0 && `, ${preview.duplicates} already imported (will be skipped)`}
             {preview.invalid > 0 && `, ${preview.invalid} with errors. Fix them in the file and choose it again`}.
           </p>
-          <table>
-            <thead>
-              <tr><th>Row</th><th>Sport</th><th>Distance</th><th>Duration</th><th>Date</th><th>Status</th></tr>
-            </thead>
-            <tbody>
-              {preview.rows.map((r) => (
-                <tr key={r.row} className={r.error ? "row-invalid" : undefined}>
-                  <td>{r.row}</td>
-                  <td>{r.sport ?? "—"}</td>
-                  <td>{r.distance_km ?? "—"}</td>
-                  <td>{r.duration_min ?? "—"}</td>
-                  <td>{r.performed_on ?? "today"}</td>
-                  <td>{r.error ? `${r.error.field}: ${r.error.error}` : r.duplicate ? "Already imported" : "OK"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <PreviewTable rows={preview.rows} />
           <button onClick={handleImport} disabled={!canImport}>
             {uploading ? "Importing…" : `Import ${workoutCount(newRows)}`}
           </button>
@@ -122,7 +103,7 @@ function ImportPage() {
 
       {result !== null && (
         <p role="status">
-          Imported {result.inserted} workouts
+          Imported {workoutCount(result.inserted)}
           {result.skipped > 0 && `, skipped ${result.skipped} already imported`}.{" "}
           <Link to="/workouts">See your workouts</Link>
         </p>

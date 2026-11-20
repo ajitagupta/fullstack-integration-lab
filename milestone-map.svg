@@ -107,15 +107,16 @@
 <text x="170.5" y="791" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="16.5" fill="#2b2f36">GPX • FIT • CSV</text>
 <text x="170.5" y="815" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" letter-spacing="1" fill="#6b7280">MILESTONE 14</text>
 <line x1="300" y1="759.0" x2="327" y2="759.0" stroke="#0f766e" stroke-width="2.5" marker-end="url(#a)"/>
-<rect x="339" y="692" width="245" height="134" rx="14" fill="#ffffff" stroke="#8a94a6" stroke-width="2.2" stroke-dasharray="7 5"/>
-<circle cx="345" cy="696" r="17" fill="#fff" stroke="#8a94a6" stroke-width="2"/>
-<text x="345" y="703" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="18" font-weight="700" fill="#5b6577">10</text>
-<text x="461.5" y="729" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="23" font-weight="700" fill="#3a4252">Just type it</text>
+<rect x="343" y="697" width="245" height="134" rx="14" fill="#0f766e22"/>
+<rect x="339" y="692" width="245" height="134" rx="14" fill="#d3eee8" stroke="#0f766e" stroke-width="2.2"/>
+<circle cx="345" cy="696" r="17" fill="#0f766e" stroke="#0f766e" stroke-width="2"/>
+<text x="345" y="703" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="18" font-weight="700" fill="#fff">10</text>
+<text x="461.5" y="729" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="23" font-weight="700" fill="#0b3d38">Just type it</text>
 <line x1="433.5" y1="742" x2="489.5" y2="742" stroke="#e8735a" stroke-width="3" stroke-linecap="round"/>
 <text x="461.5" y="768" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="16.5" fill="#2b2f36">“ran 5 km in 30 min”</text>
 <text x="461.5" y="791" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="16.5" fill="#2b2f36">→ a workout</text>
 <text x="461.5" y="815" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" letter-spacing="1" fill="#6b7280">MILESTONE 08</text>
-<line x1="591" y1="759.0" x2="618" y2="759.0" stroke="#8a94a6" stroke-width="2.5" marker-end="url(#a)"/>
+<line x1="591" y1="759.0" x2="618" y2="759.0" stroke="#0f766e" stroke-width="2.5" marker-end="url(#a)"/>
 <rect x="630" y="692" width="245" height="134" rx="14" fill="#ffffff" stroke="#8a94a6" stroke-width="2.2" stroke-dasharray="7 5"/>
 <circle cx="636" cy="696" r="17" fill="#fff" stroke="#8a94a6" stroke-width="2"/>
 <text x="636" y="703" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="18" font-weight="700" fill="#5b6577">11</text>

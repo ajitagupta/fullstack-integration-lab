@@ -1,6 +1,6 @@
 import csv
 import io
-
+import re
 
 class ImportFileError(Exception):
     """The file can't be read as this format. The message is shown to the user."""
@@ -155,3 +155,25 @@ CONVERTERS = {
     ".gpx": gpx_rows,
     ".fit": fit_rows,
 }
+
+def parse_line(text):
+    distance_match = re.search(r"(\d+\.?\d*)\s*km", text, re.IGNORECASE)
+    distance = float(distance_match.group(1)) if distance_match else None
+
+    duration_match = re.search(r"(\d+)\s*min", text, re.IGNORECASE)
+    duration = int(duration_match.group(1)) if duration_match else None
+
+    sport_match = re.search(r"(run|ran|running|jog|jogging|swim|swam|swimming|cycle|cycled|cycling|badminton|strength|rest)", text, re.IGNORECASE)
+    sport = sport_match.group(1).lower() if sport_match else None
+
+    # normalize variants to canonical forms
+    sport_map = {"ran": "run", "running": "run", "jog": "run", "jogging": "run", "swam": "swim", "swimming": "swim", "cycled": "cycle", "cycling": "cycle"}
+    if sport in sport_map:
+        sport = sport_map[sport]
+
+    return {"sport": sport, "distance_km": distance, "duration_min": duration}
+
+def text_rows(data: bytes) -> list[dict]:
+    """One workout per non-empty line, e.g. "ran 5 km in 30 min"."""
+    lines = [line.strip() for line in data.decode("utf-8").splitlines() if line.strip()]
+    return [parse_line(line) for line in lines]

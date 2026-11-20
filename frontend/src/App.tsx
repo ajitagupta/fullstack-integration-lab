@@ -8,11 +8,12 @@ import './App.css'
 import ConnectionStatus from './ConnectionStatus';
 import StatsPage from "./StatsPage";
 import ImportPage from './ImportPage';
+import QuickAddPage from './QuickAddPage';
 
 function Layout() {
   return (
     <div>
-      <nav><Link to="/">Home</Link> | <Link to="/workouts">Workouts</Link> | <Link to="/workouts/new">Add Workout</Link> | <Link to="/stats">Stats</Link> | <Link to="/import">Import</Link></nav>
+      <nav><Link to="/">Home</Link> | <Link to="/workouts">Workouts</Link> | <Link to="/workouts/new">Add Workout</Link> | <Link to="/stats">Stats</Link> | <Link to="/import">Import</Link></nav> | <Link to="/quick-add">Quick add</Link>
       <ConnectionStatus />
       <hr />
       <Outlet />
@@ -33,6 +34,7 @@ function App() {
           <Route path="workouts/:id/edit" element={<EditWorkoutPage />} />
           <Route path="stats" element={<StatsPage />} />
           <Route path="import" element={<ImportPage />} />
+          <Route path="quick-add" element={<QuickAddPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

@@ -3,10 +3,10 @@ import db
 import os
 from apscheduler.schedulers.background import BackgroundScheduler
 import cache
-import re
 from flask_cors import CORS
 from datetime import date
 import importers
+from importers import parse_line, text_rows
 
 app = Flask(__name__)
 
@@ -156,49 +156,31 @@ def create_workout():
 
     return jsonify(db.add_workout(data)), 201
 
-def parse_line(text):
-    distance_match = re.search(r"(\d+\.?\d*)\s*km", text, re.IGNORECASE)
-    distance = float(distance_match.group(1)) if distance_match else None
 
-    duration_match = re.search(r"(\d+)\s*min", text, re.IGNORECASE)
-    duration = int(duration_match.group(1)) if duration_match else None
-
-    sport_match = re.search(r"(run|ran|running|jog|jogging|swim|swam|swimming|cycle|cycled|cycling|badminton|strength|rest)", text, re.IGNORECASE)
-    sport = sport_match.group(1).lower() if sport_match else None
-
-    # normalize variants to canonical forms
-    sport_map = {"ran": "run", "running": "run", "jog": "run", "jogging": "run", "swam": "swim", "swimming": "swim", "cycled": "cycle", "cycling": "cycle"}
-    if sport in sport_map:
-        sport = sport_map[sport]
-
-    return {"sport": sport, "distance_km": distance, "duration_min": duration}
+def read_text():
+    """Turns the request body into rows. Returns (rows, None), or (None, error response)."""
+    rows = text_rows(request.get_data())
+    if not rows:
+        return None, error_response([{"field": "text", "error": "Type at least one workout."}])
+    if len(rows) > MAX_IMPORT_ROWS:
+        return None, error_response([{"field": "text", "error": f"At most {MAX_IMPORT_ROWS} lines at once."}])
+    return rows, None
 
 
-@app.route('/workouts/parse', methods=['POST'])
-def parse_workout_line():
-    text = request.get_data(as_text=True)
-    lines = text.splitlines()
-    lines = [line.strip() for line in lines if line.strip()]
-
-    cleaned = []
-    errors = []
-    for i, line in enumerate(lines, start=1):
-        workout = parse_line(line)        # NEW: parse the text line
-        error = validate_data(workout)    # REUSE: validate it
-        if error is not None:
-            errors.append({"row": i, **error})
-        else:
-            cleaned.append(workout)
-
-    if errors:
-        return error_response(errors)   # all-or-nothing
-
-    count = db.add_workouts(cleaned)
+@app.post("/workouts/parse")
+def parse_workouts():
+    rows, problem = read_text()
+    if problem:
+        return problem
+    return import_response(rows)
 
 
-    cache.clear()                          # it's a write — invalidate
-
-    return jsonify({"inserted": count}), 201
+@app.post("/workouts/parse/preview")
+def preview_parse():
+    rows, problem = read_text()
+    if problem:
+        return problem
+    return preview_response(rows)
 
 
 @app.get('/workouts/<int:workout_id>')
@@ -334,33 +316,40 @@ def check_rows(raw_rows):
     return checked
 
 
-@app.route("/workouts/upload", methods=["POST"])
-def upload_workout():
-    rows, problem = read_upload()
-    if problem:
-        return problem
+def preview_response(rows):
+    checked = check_rows(rows)
+    invalid = sum(1 for c in checked if c["error"])
+    duplicates = sum(1 for c in checked if c["duplicate"])
+    return jsonify({"rows": checked, "valid": len(checked) - invalid, "invalid": invalid, "duplicates": duplicates}), 200
 
+
+def import_response(rows):
     checked = check_rows(rows)
     errors = [{"row": c["row"], **c["error"]} for c in checked if c["error"]]
     if errors:
-        return error_response(errors)            # all or nothing
-
+        return error_response(errors)                       # all or nothing
     new_rows = [raw for raw, c in zip(rows, checked) if not c["duplicate"]]
     workouts = [clean_row(r) for r in new_rows]
     count = db.add_workouts(workouts) if workouts else 0
     cache.clear()
     return jsonify({"inserted": count, "skipped": len(rows) - count}), 201
 
+
+@app.route("/workouts/upload", methods=["POST"])
+def upload_workout():
+    rows, problem = read_upload()
+    if problem:
+        return problem
+    return import_response(rows)
+
+
 @app.post("/workouts/upload/preview")
 def preview_upload():
     rows, problem = read_upload()
     if problem:
         return problem
+    return preview_response(rows)
 
-    checked = check_rows(rows)
-    invalid = sum(1 for c in checked if c["error"])
-    duplicates = sum(1 for c in checked if c["duplicate"])
-    return jsonify({"rows": checked, "valid": len(checked) - invalid, "invalid": invalid, "duplicates": duplicates}), 200
 
 @app.get("/stats/weekly")
 def get_weekly_stats():

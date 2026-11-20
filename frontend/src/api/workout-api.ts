@@ -64,6 +64,14 @@ export async function getWeeklyStats(weeks: number, signal?: AbortSignal): Promi
 
 export type ImportResult = { inserted: number; skipped: number };
 
+function toImportResult(data: unknown): ImportResult {
+  const result = data as { inserted?: unknown; skipped?: unknown };
+  if (typeof result?.inserted !== "number" || typeof result?.skipped !== "number") {
+    throw new InvalidResponseError("inserted and skipped must be numbers.");
+  }
+  return { inserted: result.inserted, skipped: result.skipped };
+}
+
 export async function uploadWorkouts(file: File): Promise<ImportResult> {
   const body = new FormData();
   body.append("file", file);
@@ -73,7 +81,7 @@ export async function uploadWorkouts(file: File): Promise<ImportResult> {
   if (typeof result?.inserted !== "number" || typeof result?.skipped !== "number") {
     throw new InvalidResponseError("inserted and skipped must be numbers.");
   }
-  return { inserted: result.inserted, skipped: result.skipped };
+  return toImportResult(data);
 }
 
 export async function previewUpload(file: File, signal?: AbortSignal): Promise<UploadPreview> {
@@ -81,6 +89,21 @@ export async function previewUpload(file: File, signal?: AbortSignal): Promise<U
   body.append("file", file);
   const data = await request("/workouts/upload/preview", { method: "POST", body, signal });
   return parseUploadPreview(data);
+}
+
+export async function previewText(text: string, signal?: AbortSignal): Promise<UploadPreview> {
+  const data = await request("/workouts/parse/preview", {
+    method: "POST",
+    headers: { "Content-Type": "text/plain" },     // plain text this time, not FormData
+    body: text,
+    signal,
+  });
+  return parseUploadPreview(data);
+}
+
+export async function importText(text: string): Promise<ImportResult> {
+  const data = await request("/workouts/parse", { method: "POST", headers: { "Content-Type": "text/plain" }, body: text });
+  return toImportResult(data);
 }
 
 export async function checkConnection(): Promise<boolean> {

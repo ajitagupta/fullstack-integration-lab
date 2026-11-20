@@ -252,3 +252,21 @@ def test_preview_reads_strava_export(client):
         ("strength", 0.0, 55.0, "2026-11-15"),
     ]
     assert all(r["error"] is None for r in rows)
+
+def test_parse_preview_shows_each_line(client):
+    response = client.post("/workouts/parse/preview", data="ran 5 km in 30 min\nswam 1.5 km 40 min\nwent hiking",
+                           content_type="text/plain")
+    rows = response.get_json()["rows"]
+    assert [(r["sport"], r["distance_km"], r["duration_min"]) for r in rows[:2]] == [("run", 5.0, 30.0), ("swim", 1.5, 40.0)]
+    assert rows[2]["error"]["field"] == "sport"                      # "hiking" isn't a known sport
+    assert client.get("/workouts").get_json()["total"] == 0
+
+def test_parse_skips_duplicates(client):
+    client.post("/workouts/parse", data="ran 5 km in 30 min", content_type="text/plain")
+    second = client.post("/workouts/parse", data="ran 5 km in 30 min", content_type="text/plain")
+    assert second.get_json() == {"inserted": 0, "skipped": 1}
+
+def test_parse_rejects_empty_text(client):
+    response = client.post("/workouts/parse", data="  \n  ", content_type="text/plain")
+    assert response.status_code == 400
+    assert response.get_json()["errors"][0]["field"] == "text"
