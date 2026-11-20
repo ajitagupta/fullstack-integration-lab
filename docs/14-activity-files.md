@@ -6,7 +6,7 @@
 
 | | |
 |---|---|
-| Status | Session 1 of 3 done |
+| Status | Sessions 1–2 of 3 done |
 | Endpoints | `POST /workouts/upload/preview`, `POST /workouts/upload` (unchanged; the file extension picks the format) |
 | Page | `/import` |
 | Example files | [`samples/morning-run.gpx`](../samples/morning-run.gpx), [`samples/evening-ride.fit`](../samples/evening-ride.fit) |
@@ -23,6 +23,7 @@ Before GPX could be added, reading the file was separated from checking the rows
 CONVERTERS = {
     ".csv": csv_rows,
     ".gpx": gpx_rows,
+    ".fit": fit_rows,
 }
 ```
 
@@ -58,7 +59,32 @@ A GPX file is XML with a list of track points, each with a position and a time. 
 
 ## Session 2: FIT
 
-_(planned)_
+### Reading FIT
+
+FIT is Garmin's **binary** format: a stream of messages (a `record` for every GPS point, `lap`s, events) ending with a **`session`** message that already holds the summary. Nothing needs calculating; the converter reads the session with the **`fitdecode`** library.
+
+| Field | From the `session` message |
+|---|---|
+| `sport` | `sport`, mapped like GPX (`cycling` → `cycle`, …) |
+| `distance_km` | `total_distance` (metres) ÷ 1000 |
+| `duration_min` | `total_timer_time` (seconds) ÷ 60 |
+| `performed_on` | the date of `start_time` |
+
+Adding the format meant one function and one line in `CONVERTERS`. Nothing else in the upload, preview or duplicate check changed.
+
+### Decisions
+
+- **A library, not hand-written decoding.** Binary formats have headers, field definitions and checksums; decoding them by hand is error-prone. `fitdecode` is small and pure Python.
+- **One row per session, not per file.** A multisport activity (a triathlon, say) contains several sessions and becomes several workouts, with no extra code.
+- **Missing values become `""`,** like an empty CSV cell, so cleaning and validation decide whether they're allowed, the same as for every other format.
+- **Moving time (`total_timer_time`), not elapsed time.** It leaves out pauses and matches the time the watch shows.
+- **A corrupt or non-FIT file** ends in `fitdecode.FitError` and becomes a `400` with field `file`.
+- **Known limit:** dates come from the UTC start time. An activity started shortly after midnight in Zurich is dated the previous day. The same applies to GPX.
+
+### Verified
+
+- **2 new backend tests** (49 in total): the sample ride is read as cycle, 20.0 km, 45 min, 2026-11-17; a file that isn't FIT is rejected with field `file`. The FIT test reads `samples/evening-ride.fit`, since FIT files can't be written by hand.
+- In the browser: `evening-ride.fit` imports, shows "Already imported" the second time, and appears in the stats in the week of 16 November.
 
 ## Session 3: Strava CSV
 

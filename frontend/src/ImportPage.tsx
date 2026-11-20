@@ -6,7 +6,7 @@ import { ApiError, NetworkError, RequestCancelledError } from "./api/api-error";
 import { errorMessage } from "./api/error-message";
 
 const MAX_BYTES = 1024 * 1024;
-const ACCEPTED = [".csv", ".gpx"];
+const ACCEPTED = [".csv", ".gpx", ".fit"];
 
 function fileProblemOf(file: File | null): string | null {
   if (file === null) return null;

@@ -13,12 +13,12 @@ For the project overview, see the [main README](../README.md). Design decisions 
 | `POST` | `/workouts` | Create a workout (JSON) | `201` |
 | `PUT` | `/workouts/<id>` | Replace a workout (JSON, all fields) | `200` |
 | `DELETE` | `/workouts/<id>` | Delete a workout | `204` |
-| `POST` | `/workouts/upload` | Import a CSV or GPX file (`multipart/form-data`, field `file`). CSV columns `sport`, `distance_km`, `duration_min`, optional `performed_on`; a GPX file becomes one workout. At most 1 MB and 1,000 rows. All or nothing; rows that already exist are skipped. Answers `{"inserted", "skipped"}` | `201` |
+| `POST` | `/workouts/upload` | Import a CSV, GPX or FIT file (`multipart/form-data`, field `file`). CSV columns `sport`, `distance_km`, `duration_min`, optional `performed_on`; a GPX file becomes one workout, a FIT file one workout per session. At most 1 MB and 1,000 rows. All or nothing; rows that already exist are skipped. Answers `{"inserted", "skipped"}` | `201` |
 | `POST` | `/workouts/upload/preview` | The same file checks as the upload; returns every row with its error and a duplicate flag, saves nothing | `200` |
 | `POST` | `/workouts/parse` | Import plain-text lines like "Went for a 6km run, 35 min", all or nothing | `201` |
 | `GET` | `/stats/weekly?weeks=8` | Totals per week and sport (workouts, km, minutes), computed in SQL; `weeks` 1–52 | `200` |
 
-Example import files are in [`samples/`](../samples): a CSV file and a GPX run.
+Example import files are in [`samples/`](../samples): a CSV file, a GPX run and a FIT ride.
 
 **List parameters** for `GET /workouts`:
 
@@ -44,7 +44,7 @@ Invalid input is `400`, an unknown id is `404`, an upload over 1 MB is `413`. Th
 | `db.py` | Database access: engine (`pool_pre_ping`), queries, inserts in one transaction |
 | `models.py` | The `Workout` model with its check constraints and indexes |
 | `migrations/` | Alembic migrations: the schema history |
-| `importers.py` | One converter per file format (CSV, GPX), chosen by file extension; GPX is read with `defusedxml` |
+| `importers.py` | One converter per file format (CSV, GPX, FIT), chosen by file extension; GPX is read with `defusedxml`, FIT with `fitdecode` |
 | `cache.py` | Small in-memory cache for list queries; cleared on every write |
 | `seed.py` | Replaces **all** workouts with 40 sample workouts |
 | `check_db.py` | Connection check against `DATABASE_URL` |

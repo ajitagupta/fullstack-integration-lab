@@ -224,3 +224,19 @@ def test_upload_rejects_broken_gpx(client):
     response = upload(client, b"<gpx><trk>", "run.gpx")
     assert response.status_code == 400
     assert response.get_json()["errors"][0]["field"] == "file"
+
+import os
+
+SAMPLES = os.path.join(os.path.dirname(__file__), "..", "samples")
+
+def test_preview_reads_fit(client):
+    with open(os.path.join(SAMPLES, "evening-ride.fit"), "rb") as f:
+        response = preview(client, f.read(), "ride.fit")
+    row = response.get_json()["rows"][0]
+    assert (row["sport"], row["distance_km"], row["duration_min"], row["performed_on"]) == ("cycle", 20.0, 45.0, "2026-11-17")
+    assert row["error"] is None
+
+def test_upload_rejects_broken_fit(client):
+    response = upload(client, b"this is not a fit file", "ride.fit")
+    assert response.status_code == 400
+    assert response.get_json()["errors"][0]["field"] == "file"

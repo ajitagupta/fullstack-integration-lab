@@ -70,8 +70,38 @@ def gpx_rows(data: bytes) -> list[dict]:
         "performed_on": start.date().isoformat(),                             # the date of `start`, as "2026-11-14"
     }]
 
+import io
+import fitdecode
+
+
+def fit_rows(data: bytes) -> list[dict]:
+    rows = []
+    try:
+        with fitdecode.FitReader(io.BytesIO(data)) as reader:       # FitReader wants a file, so wrap the bytes
+            for frame in reader:
+                if isinstance(frame, fitdecode.FitDataMessage) and frame.name == "session":    # the summary message
+                    rows.append(session_to_row(frame))
+    except fitdecode.FitError:
+        raise ImportFileError("The file is not a valid FIT file.")
+    return rows
+
+
+def session_to_row(session) -> dict:
+    sport = str(session.get_value("sport", fallback="")).lower()
+    distance_m = session.get_value("total_distance", fallback=None)                   # in metres
+    seconds = session.get_value("total_timer_time", fallback=None)                    # moving time, without pauses
+    start = session.get_value("start_time", fallback=None)                            # a datetime
+
+    return {
+        "sport": ACTIVITY_TO_SPORT.get(sport, sport),
+        "distance_km": "" if distance_m is None else str(round(distance_m / 1000, 2)),
+        "duration_min": "" if seconds is None else str(round(seconds / 60)),
+        "performed_on": "" if start is None else start.date().isoformat(),                                 # same as in gpx_rows
+    }
+
 # File extension → converter. A new format = a new entry here.
 CONVERTERS = {
     ".csv": csv_rows,
     ".gpx": gpx_rows,
+    ".fit": fit_rows,
 }

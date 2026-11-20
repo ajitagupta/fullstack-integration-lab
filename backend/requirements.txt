@@ -7,3 +7,4 @@ alembic
 python-dotenv
 flask-cors
 defusedxml
+fitdecode
