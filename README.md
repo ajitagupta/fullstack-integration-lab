@@ -95,6 +95,7 @@ Every feature crosses the same line: **browser → API → database**.
 - _Next: tests of the integrated system (10), CI/CD and rollback (11)_
 
 📄 [09-diagnose-failures](docs/09-diagnose-failures.md)
+
 ---
 
 # Part 2 · Features
