@@ -270,3 +270,29 @@ def test_parse_rejects_empty_text(client):
     response = client.post("/workouts/parse", data="  \n  ", content_type="text/plain")
     assert response.status_code == 400
     assert response.get_json()["errors"][0]["field"] == "text"
+
+import db
+
+def test_every_response_has_a_request_id(client):
+    response = client.get("/workouts")
+    assert len(response.headers["X-Request-ID"]) > 0
+
+def test_request_id_from_the_caller_is_kept(client):
+    response = client.get("/workouts", headers={"X-Request-ID": "abc-123"})
+    assert response.headers["X-Request-ID"] == "abc-123"
+
+def test_unsafe_request_id_is_replaced(client):
+    response = client.get("/workouts", headers={"X-Request-ID": "x" * 100})
+    assert response.headers["X-Request-ID"] != "x" * 100
+
+def test_crash_returns_500_with_reference(client, monkeypatch):
+    def broken(*args, **kwargs):
+        raise RuntimeError("database exploded")
+    monkeypatch.setattr(db, "search_workouts", broken)        # simulate a bug deep inside
+
+    response = client.get("/workouts")
+
+    assert response.status_code == 500
+    request_id = response.headers["X-Request-ID"]
+    assert request_id in response.get_json()["errors"][0]["error"]
+    assert "exploded" not in response.get_data(as_text=True)    # internals stay in the log

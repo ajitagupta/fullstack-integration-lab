@@ -7,10 +7,15 @@ from flask_cors import CORS
 from datetime import date
 import importers
 from importers import parse_line, text_rows
+import observability
+from observability import logger
+from flask import g
+from werkzeug.exceptions import HTTPException
 
 app = Flask(__name__)
+observability.setup(app)
 
-CORS(app, origins=os.environ.get("CORS_ORIGINS", "http://localhost:5173").split(","))
+CORS(app, origins=os.environ.get("CORS_ORIGINS", "http://localhost:5173").split(","), expose_headers=["X-Request-ID"])
 MAX_LIMIT = 100
 app.config["MAX_CONTENT_LENGTH"] = 1 * 1024 * 1024    # 1 MB: Flask rejects larger requests with 413
 MAX_IMPORT_ROWS = 1000
@@ -27,6 +32,13 @@ def not_found(e):
 @app.errorhandler(413)
 def too_large(e):
     return error_response([{"field": "file", "error": "The file is larger than 1 MB."}], 413)
+
+@app.errorhandler(Exception)
+def unexpected_error(e):
+    if isinstance(e, HTTPException):
+        return e                                   # 404, 405, 413…: not crashes, keep their normal handling
+    logger.exception("unhandled error", extra={"fields": {"request_id": g.get("request_id")}})
+    return error_response([{"error": f"Something went wrong on our side. Reference: {g.get('request_id')}"}], 500)
 
 def scheduled_job():
     count = db.count_workouts(None, None, None)
