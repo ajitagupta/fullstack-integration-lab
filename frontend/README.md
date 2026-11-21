@@ -1,6 +1,6 @@
 # Frontend — Workout Tracker UI
 
-The browser app of the workout tracker: **React 19**, **TypeScript** and **Vite**, with **React Router**. It lists, filters, adds, edits and deletes workouts, imports them from CSV, GPX and FIT files (including Strava's export) or from typed text, and charts them per week, all through the [backend API](../backend/README.md).
+The browser app of the workout tracker: **React 19**, **TypeScript** and **Vite**, with **React Router** and **Bootstrap 5** (teal theme). It lists, filters, adds, edits and deletes workouts, imports them from CSV, GPX and FIT files (including Strava's export) or from typed text, and charts them per week, all through the [backend API](../backend/README.md).
 
 For the project overview, see the [main README](../README.md). Design decisions per milestone are in [`docs/`](../docs).
 
@@ -8,7 +8,7 @@ For the project overview, see the [main README](../README.md). Design decisions 
 
 | Route | Component | What it does |
 |---|---|---|
-| `/` | `HomePage` | Start page |
+| `/` | `HomePage` | Short intro, this week's totals, and the three ways to add workouts |
 | `/workouts` | `WorkoutsPage` | List with sport filter, sort order and pagination; the state lives in the URL (`?sport=swim&sort=-distance_km&page=2`) |
 | `/workouts/:id` | `WorkoutDetailsPage` | One workout, with Edit and Delete (inline confirmation) |
 | `/workouts/new` | `forms/WorkoutForm` | Add a workout |
@@ -17,7 +17,7 @@ For the project overview, see the [main README](../README.md). Design decisions 
 | `/import` | `ImportPage` | Choose a CSV, GPX or FIT file, see a preview of every row with its date and status (OK, error, already imported), then import the new rows (only when all rows are valid) |
 | `/quick-add` | `QuickAddPage` | Type workouts as text, one per line; **Check** shows the same preview as an import, **Save** stores the new ones |
 
-Every page shares a layout (`App.tsx`) with the navigation and `ConnectionStatus`, which checks the API every 10 seconds.
+Every page shares a layout (`App.tsx`): a navbar that collapses on narrow screens, and a footer with `ConnectionStatus`, which checks the API every 10 seconds.
 
 ## Structure
 
@@ -30,6 +30,8 @@ Every page shares a layout (`App.tsx`) with the navigation and `ConnectionStatus
 | `src/api/error-message.ts` | Turns any error into a message for the user |
 | `src/forms/` | The add/edit form and its validation, which mirrors the server's rules |
 | `src/import/` | `PreviewTable`, shared by the Import and Quick add pages, and `workoutCount` |
+| `src/sports.ts` | One colour and icon per sport, shared by the list, the details page and the charts |
+| `src/index.css` | The teal theme on top of Bootstrap (CSS variables) |
 | `src/stats/` | The weekly chart and `toWeeklyChart`, which reshapes the API's rows for it |
 | `tests/` | Playwright end-to-end tests |
 

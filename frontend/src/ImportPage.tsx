@@ -72,43 +72,66 @@ function ImportPage() {
   const canImport = preview !== null && preview.invalid === 0 && newRows > 0 && !uploading;
 
   return (
-    <>
-      <h1>Import workouts</h1>
-      <p>
-        A <strong>CSV</strong> file with the columns <code>sport</code>, <code>distance_km</code>, <code>duration_min</code>,
-        and optionally <code>performed_on</code> (e.g. 2026-11-19), or a <strong>GPX</strong> or <strong>FIT</strong> file exported from Garmin or Strava. Strava's <code>activities.csv</code> export works too.
-        Up to 1,000 rows, 1 MB.
-      </p>
-
-      <label htmlFor="csv-file">File</label>
-      <input id="csv-file" type="file" accept={ACCEPTED.join(",")} onChange={chooseFile} />
-
-      {fileProblem && <p role="alert">{fileProblem}</p>}
-      {error && <p role="alert">{error}</p>}
-      {checking && <p role="status">Checking the file…</p>}
-
-      {preview && (
-        <>
-          <p role="status">
-            {newRows} new rows
-            {preview.duplicates > 0 && `, ${preview.duplicates} already imported (will be skipped)`}
-            {preview.invalid > 0 && `, ${preview.invalid} with errors. Fix them in the file and choose it again`}.
-          </p>
-          <PreviewTable rows={preview.rows} />
-          <button onClick={handleImport} disabled={!canImport}>
-            {uploading ? "Importing…" : `Import ${workoutCount(newRows)}`}
-          </button>
-        </>
-      )}
-
-      {result !== null && (
-        <p role="status">
-          Imported {workoutCount(result.inserted)}
-          {result.skipped > 0 && `, skipped ${result.skipped} already imported`}.{" "}
-          <Link to="/workouts">See your workouts</Link>
+    <div className="row justify-content-center">
+      <div className="col-lg-8">
+        <h1 className="page-title mb-1">Import workouts</h1>
+        <p className="text-muted mb-4">
+          From your watch or another app: <strong>GPX</strong> and <strong>FIT</strong> files from Garmin or Strava,
+          Strava's <code>activities.csv</code> export, or your own CSV with <code>sport</code>, <code>distance_km</code>,{" "}
+          <code>duration_min</code> and optionally <code>performed_on</code>. Up to 1,000 rows, 1 MB.
         </p>
-      )}
-    </>
+
+        <div className="card shadow-sm mb-4">
+          <div className="card-body p-4">
+            <label htmlFor="csv-file" className="form-label fw-semibold">Choose a file</label>
+            <input
+              id="csv-file"
+              type="file"
+              accept={ACCEPTED.join(",")}
+              onChange={chooseFile}
+              className={`form-control ${fileProblem ? "is-invalid" : ""}`}
+            />
+            {fileProblem && <div role="alert" className="invalid-feedback">{fileProblem}</div>}
+            {checking && (
+              <div role="status" className="text-muted small mt-2">
+                <span className="spinner-border spinner-border-sm me-2" aria-hidden="true" />
+                Checking the file…
+              </div>
+            )}
+          </div>
+        </div>
+
+        {error && <div role="alert" className="alert alert-danger">{error}</div>}
+
+        {preview && (
+          <div className="card shadow-sm mb-4">
+            <div className="card-body p-4">
+              <p role="status" className="mb-3">
+                <strong>{newRows} new</strong>
+                {preview.duplicates > 0 && `, ${preview.duplicates} already imported (will be skipped)`}
+                {preview.invalid > 0 && (
+                  <span className="text-danger">, {preview.invalid} with errors. Fix them in the file and choose it again</span>
+                )}
+                .
+              </p>
+              <PreviewTable rows={preview.rows} />
+              <button className="btn btn-primary" onClick={handleImport} disabled={!canImport}>
+                {uploading && <span className="spinner-border spinner-border-sm me-2" aria-hidden="true" />}
+                {uploading ? "Importing…" : `Import ${workoutCount(newRows)}`}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {result !== null && (
+          <div role="status" className="alert alert-success">
+            Imported {workoutCount(result.inserted)}
+            {result.skipped > 0 && `, skipped ${result.skipped} already imported`}.{" "}
+            <Link to="/workouts" className="alert-link">See your workouts</Link>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 

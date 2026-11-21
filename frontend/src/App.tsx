@@ -1,23 +1,63 @@
-import { Route, Link, Outlet, BrowserRouter, Routes } from 'react-router-dom';
+import { Route, NavLink, Outlet, BrowserRouter, Routes } from 'react-router-dom';
 import HomePage from './HomePage';
 import WorkoutsPage from './WorkoutsPage';
 import WorkoutDetailPage from './WorkoutDetailsPage';
 import { WorkoutForm } from "./forms/WorkoutForm";
 import { EditWorkoutPage } from "./EditWorkoutPage";
-import './App.css'
 import ConnectionStatus from './ConnectionStatus';
 import StatsPage from "./StatsPage";
 import ImportPage from './ImportPage';
 import QuickAddPage from './QuickAddPage';
+import { useState } from 'react';
 
 function Layout() {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const links = [
+    { to: "/workouts", label: "Workouts" },
+    { to: "/quick-add", label: "Quick add" },
+    { to: "/workouts/new", label: "Add workout" },
+    { to: "/import", label: "Import" },
+    { to: "/stats", label: "Stats" },
+  ];
+
   return (
-    <div>
-      <nav><Link to="/">Home</Link> | <Link to="/workouts">Workouts</Link> | <Link to="/workouts/new">Add Workout</Link> | <Link to="/stats">Stats</Link> | <Link to="/import">Import</Link></nav> | <Link to="/quick-add">Quick add</Link>
-      <ConnectionStatus />
-      <hr />
-      <Outlet />
-    </div>
+    <>
+      <nav className="navbar navbar-expand-md navbar-dark bg-primary mb-4">
+        <div className="container">
+          <NavLink className="navbar-brand" to="/">🏃 Workout Tracker</NavLink>
+          <button
+            className="navbar-toggler"
+            type="button"
+            aria-controls="main-nav"
+            aria-expanded={menuOpen}
+            aria-label="Toggle navigation"
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            <span className="navbar-toggler-icon" />
+          </button>
+          <div id="main-nav" className={`collapse navbar-collapse ${menuOpen ? "show" : ""}`}>
+            <ul className="navbar-nav ms-auto">
+              {links.map((link) => (
+                <li className="nav-item" key={link.to}>
+                  <NavLink className="nav-link" to={link.to} end onClick={() => setMenuOpen(false)}>
+                    {link.label}
+                  </NavLink>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </nav>
+
+      <main className="container pb-5">
+        <Outlet />
+      </main>
+
+      <footer className="container py-3 border-top small text-muted d-flex justify-content-between">
+        <span>Workout Tracker · React + Flask</span>
+        <ConnectionStatus />
+      </footer>
+    </>
   );
 }
 

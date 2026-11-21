@@ -91,68 +91,74 @@ export function WorkoutForm({ workoutId, initialValues = EMPTY }: Props) {
 }
 
   return (
-    <>
-    <h1>{isEdit ? "Edit workout" : "Add workout"}</h1>
-    <form onSubmit={handleSubmit} noValidate>
-      <div>
-        <label htmlFor="sport">Sport</label>
-        <select
-          id="sport"
-          name="sport"
-          value={values.sport}
-          onChange={handleChange}
-          aria-invalid={show("sport") ? true : undefined}
-          aria-describedby={show("sport") ? "sport-error" : undefined}
-        >
-          <option value="">Choose a sport...</option>
-          {SPORTS.map((s) => <option key={s} value={s}>{s}</option>)}
-        </select>
-        {show("sport") && <p id="sport-error" className="field-error">{show("sport")}</p>}
+    <div className="row justify-content-center">
+      <div className="col-lg-6">
+        <h1 className="page-title mb-1">{isEdit ? "Edit workout" : "Add workout"}</h1>
+        <p className="text-muted mb-4">Distance is needed for runs, rides and swims; duration for everything except rest days.</p>
+
+        <form onSubmit={handleSubmit} noValidate className="card shadow-sm">
+          <div className="card-body p-4">
+            <div className="mb-3">
+              <label htmlFor="sport" className="form-label">Sport</label>
+              <select
+                id="sport" name="sport" value={values.sport} onChange={handleChange}
+                className={`form-select ${show("sport") ? "is-invalid" : ""}`}
+                aria-invalid={show("sport") ? true : undefined}
+                aria-describedby={show("sport") ? "sport-error" : undefined}
+              >
+                <option value="">Choose a sport…</option>
+                {SPORTS.map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
+              {show("sport") && <div id="sport-error" className="invalid-feedback">{show("sport")}</div>}
+            </div>
+
+            <div className="row g-3 mb-3">
+              <div className="col-sm-6">
+              <label htmlFor="distance" className="form-label">Distance (km)</label>
+                <div className="input-group has-validation">
+                  <input
+                    type="number" step="any" min="0" placeholder="e.g. 5.2"
+                    id="distance" name="distance" value={values.distance} onChange={handleChange}
+                    className={`form-control ${show("distance") ? "is-invalid" : ""}`}
+                    aria-invalid={show("distance") ? true : undefined}
+                    aria-describedby={show("distance") ? "distance-error" : undefined}
+                  />
+                  <span className="input-group-text">km</span>
+                  {show("distance") && <div id="distance-error" className="invalid-feedback">{show("distance")}</div>}
+                </div>
+              </div>
+              <div className="col-sm-6">
+                <label htmlFor="duration" className="form-label">Duration (min)</label>
+                <div className="input-group has-validation">
+                  <input
+                    type="number" step="1" min="0" placeholder="e.g. 33"
+                    id="duration" name="duration" value={values.duration} onChange={handleChange}
+                    className={`form-control ${show("duration") ? "is-invalid" : ""}`}
+                    aria-invalid={show("duration") ? true : undefined}
+                    aria-describedby={show("duration") ? "duration-error" : undefined}
+                  />
+                  <span className="input-group-text">min</span>
+                  {show("duration") && <div id="duration-error" className="invalid-feedback">{show("duration")}</div>}
+                </div>
+              </div>
+            </div>
+
+            {formError && <div role="alert" className="alert alert-danger">{formError}</div>}
+            {unconfirmed && (
+              <div role="alert" className="alert alert-warning">
+                We couldn't confirm the save. It may have gone through.{" "}
+                <Link to="/workouts" className="alert-link">Check your workouts</Link> before trying again.
+              </div>
+            )}
+            {success && <div role="status" className="alert alert-success">{success}</div>}
+
+            <button type="submit" className="btn btn-primary w-100" disabled={saving}>
+              {saving && <span className="spinner-border spinner-border-sm me-2" aria-hidden="true" />}
+              {saving ? "Saving…" : isEdit ? "Save changes" : "Add workout"}
+            </button>
+          </div>
+        </form>
       </div>
-
-      <div>
-        <label htmlFor="distance">Distance (km)</label>
-        <input
-            type="number"
-            step="any"
-            min="0"
-            placeholder="e.g. 5.2"
-            id="distance"
-            name="distance"
-            value={values.distance}
-            onChange={handleChange}
-            aria-invalid={show("distance") ? true : undefined}
-            aria-describedby={show("distance") ? "distance-error" : undefined}
-        />
-        {show("distance") && <p id="distance-error" className="field-error">{show("distance")}</p>}
-       </div>            
-
-       <div>
-        <label htmlFor="duration">Duration (min)</label>
-        <input
-            type="number"
-            step="1"
-            min="0"
-            placeholder="e.g. 33"
-            id="duration"
-            name="duration"
-            value={values.duration}
-            onChange={handleChange}
-            aria-invalid={show("duration") ? true : undefined}
-            aria-describedby={show("duration") ? "duration-error" : undefined}
-        />
-        {show("duration") && <p id="duration-error" className="field-error">{show("duration")}</p>}
-        </div> 
-        {formError && <p role="alert" className="field-error">{formError}</p>}
-        {unconfirmed && (
-          <p role="alert" className="field-error">
-            We couldn't confirm the save. It may have gone through.{" "}
-            <Link to="/workouts">Check your workouts</Link> before trying again.
-          </p>
-        )}
-      <button type="submit" disabled={saving}>{saving ? "Saving…" : isEdit ? "Save changes" : "Add workout"}</button>
-      {success && <p role="status">{success}</p>}
-    </form>
-    </>
+    </div>
   );
 }

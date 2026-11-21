@@ -32,31 +32,47 @@ function StatsPage() {
     return () => controller.abort();
   }, [reloadKey]);
 
-  return (
+    return (
     <>
-      <h1>Stats</h1>
-      <p>The last {WEEKS} weeks, per sport.</p>
+      <h1 className="page-title mb-1">Stats</h1>
+      <p className="text-muted mb-4">The last {WEEKS} weeks, per sport.</p>
 
-      {status === "loading" && <p role="status">Loading stats…</p>}
+      {status === "loading" && (
+        <div role="status" className="text-muted">
+          <span className="spinner-border spinner-border-sm me-2" aria-hidden="true" />Loading stats…
+        </div>
+      )}
 
       {status === "error" && (
-        <div role="alert">
-          <p>{error}</p>
-          <button onClick={() => setReloadKey((k) => k + 1)}>Try again</button>
+        <div role="alert" className="alert alert-danger d-flex justify-content-between align-items-center">
+          <span>{error}</span>
+          <button className="btn btn-outline-danger btn-sm" onClick={() => setReloadKey((k) => k + 1)}>Try again</button>
         </div>
       )}
 
       {status === "success" && stats.length === 0 && (
-        <p role="status">No workouts in the last {WEEKS} weeks.</p>
+        <p role="status" className="text-muted">No workouts in the last {WEEKS} weeks.</p>
       )}
 
       {status === "success" && stats.length > 0 && (
-        <>
-          <h2>Distance per week</h2>
-          <WeeklyChart data={toWeeklyChart(stats, "distance_km")} unit="km" />
-          <h2>Time per week</h2>
-          <WeeklyChart data={toWeeklyChart(stats, "duration_min")} unit="min" />
-        </>
+        <div className="row g-4">
+          <div className="col-lg-6">
+            <div className="card shadow-sm h-100">
+              <div className="card-body">
+                <h2 className="h5 mb-3">Distance per week</h2>
+                <WeeklyChart data={toWeeklyChart(stats, "distance_km")} unit="km" />
+              </div>
+            </div>
+          </div>
+          <div className="col-lg-6">
+            <div className="card shadow-sm h-100">
+              <div className="card-body">
+                <h2 className="h5 mb-3">Time per week</h2>
+                <WeeklyChart data={toWeeklyChart(stats, "duration_min")} unit="min" />
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );

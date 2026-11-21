@@ -23,7 +23,7 @@ A React + TypeScript frontend and a Flask API on PostgreSQL, built in three part
 
 Every feature crosses the same line: **browser → API → database**.
 
-**Status:** stages 1–3 and 5–10 are done. Stage 4 (*Run reliably*: logs, end-to-end tests, CI/CD) and stage 11 (*Look good*) are in progress; stage 12 (*Live sync*) is optional.
+**Status:** stages 1–3 and 5–11 are done. Stage 4 (*Run reliably*: logs, end-to-end tests, CI/CD) is in progress; stage 12 (*Live sync*) is optional.
 
 ---
 
@@ -46,7 +46,7 @@ Every feature crosses the same line: **browser → API → database**.
 - **Untrusted input handled in one pipeline:** CSV, GPX and FIT files and typed text all become the same rows, with one preview, one validation and one duplicate check.
 - **Tested at every layer:** pytest against a real test database, Vitest, Playwright end to end.
 
-**Stack:** React · TypeScript · Vite · Flask · SQLAlchemy 2.0 · Alembic · PostgreSQL · Docker · Vercel · Render · Neon · pytest · Vitest · Playwright
+**Stack:** React · TypeScript · Vite · Bootstrap · Flask · SQLAlchemy 2.0 · Alembic · PostgreSQL · Docker · Vercel · Render · Neon · pytest · Vitest · Playwright
 
 ---
 
@@ -168,11 +168,16 @@ Every feature crosses the same line: **browser → API → database**.
 
 📄 [08-just-type-it](docs/08-just-type-it.md)
 
-### 11. Look good 🔜 _(milestone 16)_
-**Why it matters:** a clean, consistent interface is the first thing anyone notices.
+### 11. Look good
+**Why it matters:** the interface is the first thing anyone sees, and a tool that looks unfinished doesn't get used.
+**Key question:** *How do you restyle a whole app without touching how it works?* Change only the markup: Bootstrap classes on the existing JSX, with state, requests and validation left as they are.
 
-- _Bootstrap with a navbar, cards for workouts, consistent forms and buttons_
-- _The teal accent from the map as the app's primary colour_
+- A teal theme (the colour of the map) on Bootstrap 5, with a navbar that collapses on phones
+- A home page with this week's totals and the three ways to add workouts
+- One colour and icon per sport, shared by the list, the details page and the charts
+- Accessible forms kept intact: the component tests caught units that had moved out of the labels
+
+📄 [16-look-good](docs/16-look-good.md)
 
 ### 12. Live sync 🔜 _(milestone 15, optional)_
 **Why it matters:** _new activities appear without exporting anything_
@@ -225,6 +230,7 @@ Open http://localhost:5173. More commands (migrations, seed data, tests, reset) 
 | Totals computed in SQL | The database returns a few dozen sums instead of every row | [13](docs/13-stats.md) |
 | Preview before every import, all or nothing | One bad row must not leave half a file saved | [07](docs/07-csv-import.md) |
 | One converter per input format | A new format is one function; the shared pipeline stays untouched | [14](docs/14-activity-files.md) |
+| Bootstrap classes, no component library | Restyling changed only markup; logic and tests stayed as they were | [16](docs/16-look-good.md) |
 | _more as the parts are built_ | | |
 
 ---
