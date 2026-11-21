@@ -48,10 +48,10 @@
 <text x="752.5" y="331" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="16.5" fill="#2b2f36">Vercel • Render • Neon</text>
 <text x="752.5" y="355" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" letter-spacing="1" fill="#6b7280">MILESTONES 03, 04</text>
 <line x1="882" y1="299.0" x2="909" y2="299.0" stroke="#0f766e" stroke-width="2.5" marker-end="url(#a)"/>
-<rect x="921" y="232" width="245" height="134" rx="14" fill="#ffffff" stroke="#8a94a6" stroke-width="2.2" stroke-dasharray="7 5"/>
-<circle cx="927" cy="236" r="17" fill="#fff" stroke="#8a94a6" stroke-width="2"/>
-<text x="927" y="243" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="18" font-weight="700" fill="#5b6577">4</text>
-<text x="1043.5" y="269" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="23" font-weight="700" fill="#3a4252">Run reliably</text>
+<rect x="921" y="232" width="245" height="134" rx="14" fill="#ffffff" stroke="#0f766e" stroke-width="2.2"/>
+<circle cx="927" cy="236" r="17" fill="#fff" stroke="#0f766e" stroke-width="2"/>
+<text x="927" y="243" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="18" font-weight="700" fill="#0f766e">4</text>
+<text x="1043.5" y="269" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="23" font-weight="700" fill="#0b3d38">Run reliably</text>
 <line x1="1015.5" y1="282" x2="1071.5" y2="282" stroke="#e8735a" stroke-width="3" stroke-linecap="round"/>
 <text x="1043.5" y="308" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="16.5" fill="#2b2f36">logs • tests</text>
 <text x="1043.5" y="331" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="16.5" fill="#2b2f36">CI/CD • rollback</text>

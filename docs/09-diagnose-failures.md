@@ -6,7 +6,7 @@
 
 | | |
 |---|---|
-| Status | Sessions 1–3 of 4 done |
+| Status | Done (4 sessions) |
 | Header | `X-Request-ID` on every API response |
 | Endpoints | `GET /health`, `GET /ready` |
 | Log format | One JSON object per line, on stdout |
@@ -145,6 +145,41 @@ A planted 12-second delay in the list endpoint. After **10 seconds** (the client
 - **1 new backend test** (61 in total): a database failure deep inside a request returns `503` with the request ID in the message, and the underlying error text stays out of the response.
 - All three drills repeated after the fixes, with the planted bug and delay removed afterwards.
 
-## Session 4: A full trace
+## Session 4: One request, traced through all three services
 
-_(planned)_
+One click on the **live** site (`/workouts`), followed from the browser through Render to Neon and back, using the request ID from session 1.
+
+### The trace
+
+| Hop | Where it shows | Observed |
+|---|---|---|
+| **Browser → Vercel** (the page itself) | DevTools, `workouts` (Doc), Timing | 48.9 ms in total, 45.6 ms waiting for Vercel's edge network |
+| **Browser → Render** (the API call) | DevTools, `workouts?limit=10…` (Fetch/XHR), Timing | **122.4 ms** in total, of which 118.8 ms waiting for the server's response; a `Server-Timing` entry `cfExtPri` shows the request passed through Cloudflare, which sits in front of Render |
+| **Render → Flask → Neon** | Render dashboard, Logs, search for the `X-Request-ID` (`577cb5ae8671`) | One JSON line: `status: 200`, **`duration_ms: 79.6`**, the time Flask spent including the queries to Neon |
+| **The rest** | the difference | about **43 ms** for the network, TLS and Render's proxy |
+
+### What the numbers say
+
+- **The request ID connects the two sides.** The ID from the browser's response headers found exactly one line in Render's logs, with nothing else needed: no timestamps to match up, no guessing which request it was.
+- **Most of the time is spent talking to the database.** The same endpoint takes about 4 ms locally, where API and database share one machine. In production, Flask on Render and PostgreSQL on Neon are separate services, so every query is a network round trip, and this request makes several: the list query, the count for the pagination, and the connection check of `pool_pre_ping` before using a pooled connection. `pool_pre_ping` costs one round trip per request; it's the price for never handing out a dead connection (milestone 04).
+- **The frontend and the API are served from different places.** The page (Vercel's edge, about 46 ms) and the data (Render plus Neon, about 120 ms) travel separately, which is why the page appears before the list.
+- **Health checks stay quiet.** The `/ready` requests every 10 seconds appear in the browser, but not in Render's logs, because they succeeded.
+- **The deploy pipeline works again.** The live logs are JSON lines with request IDs, so today's code reached Render without a manual deploy.
+
+### Possible next steps (not done)
+
+- `Server-Timing` headers from Flask (for example `db;dur=70`) would show the database share directly in the browser's Timing tab.
+- Combining the list and the count into one query would save a round trip per page.
+
+---
+
+## Summary
+
+**Key question answered:** *A user reports an error. How do you find their request in the logs?* By the reference they see. Every response carries an `X-Request-ID`, every log line contains it, and every error message shows it to the user. One search in the logs returns that request, with a one-line cause for known failures (database unavailable, `503`) and a full stack trace for real bugs (`500`).
+
+| Session | Result |
+|---|---|
+| 1 | Request IDs and one JSON log line per request; `500` with a reference for unexpected errors |
+| 2 | `/health` and `/ready`; a connection badge with three states; quiet health checks |
+| 3 | Three failure drills and their fixes (`503` for database outages, one-line warnings, a connect timeout); a real incident written up: deploys that had silently stopped |
+| 4 | One live request traced from the browser through Render to Neon: 122 ms in total, 80 ms of it in Flask and the database |

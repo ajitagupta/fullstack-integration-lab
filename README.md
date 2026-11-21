@@ -85,14 +85,16 @@ Every feature crosses the same line: **browser → API → database**.
 
 📄 [03-browser-api-boundary](docs/03-browser-api-boundary.md) · [04-first-vertical-slice](docs/04-first-vertical-slice.md)
 
-### 4. Run reliably 🔜
-**Why it matters:** _(milestones 09, 10, 11)_
-**Key question:** _e.g. A user reports an error. How do you find their request in the logs?_
+### 4. Run reliably *(in progress: milestone 09 done, 10 and 11 next)*
+**Why it matters:** in production, nobody sees the screen when something goes wrong. The logs have to point to the one request that failed.
+**Key question:** *A user reports an error. How do you find their request in the logs?* By the reference they see: every response carries an `X-Request-ID`, every log line contains it, and every error message shows it.
 
-- _Structured logs, request IDs, health and readiness checks_
-- _Tests at every layer, run in CI on every push_
-- _Production server (gunicorn), deployment checks, rollback and backup/restore_
+- Structured JSON logs with request IDs; `500` for bugs (with a stack trace in the log), `503` for an unavailable database (with a one-line cause)
+- `/health` and `/ready`, and a connection badge with three states
+- Failure drills (database down, a planted bug, a slow API) and a real incident written up: deploys that had silently stopped
+- _Next: tests of the integrated system (10), CI/CD and rollback (11)_
 
+📄 [09-diagnose-failures](docs/09-diagnose-failures.md)
 ---
 
 # Part 2 · Features
