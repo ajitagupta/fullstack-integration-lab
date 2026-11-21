@@ -6,7 +6,7 @@
 
 | | |
 |---|---|
-| Status | Sessions 1–2 of 4 done |
+| Status | Sessions 1–3 of 4 done |
 | Header | `X-Request-ID` on every API response |
 | Endpoints | `GET /health`, `GET /ready` |
 | Log format | One JSON object per line, on stdout |
@@ -91,9 +91,59 @@ The footer used to check the connection by loading one workout, and only knew "C
 - **3 new backend tests** (60 in total): `/health` answers `200`; `/ready` answers `200` with a reachable database; with `db.ping` replaced by a function that raises, `/ready` answers `503` with `database: unreachable`.
 - In the browser, all three badge states: everything running → Connected; `docker compose stop db` → Database unavailable, with the failed checks in the API log; `docker compose stop api` → API unreachable; both started again → Connected.
 
-## Session 3: Failure drills
+## Session 3: Failure drills, and a real incident
 
-_(planned)_
+**The idea:** break things on purpose, while watching both sides: what the user sees, and what the log shows. A failure that is visible but misleading is almost as bad as an invisible one.
+
+### Drill 1: the database is down
+
+`docker compose stop db`, then every page of the app.
+
+| Observed | Verdict |
+|---|---|
+| The footer badge showed "Database unavailable" on every page; `/ready` answered `503` | Correct |
+| Every failed request had its own request ID and the root cause in the log: `failed to resolve host 'db'` | Correct |
+| `/workouts` and `/stats` answered **`500`** with "Something went wrong on our side" | **Misleading:** a known, temporary dependency failure was reported as a bug |
+| Every failure wrote an **80-line stack trace**, `/ready` every 10 seconds; two minutes produced dozens of identical traces | **Noise:** the one line that mattered was buried |
+| Every failing request took **3–4 seconds** | Slow, but caused by the failing name lookup of `db`, not by the app |
+
+**Fixes:**
+- A handler for SQLAlchemy's `OperationalError`: database failures now answer **`503`** with "The database is unavailable right now. Try again in a moment. Reference: …", and log **one** `WARNING` line with the cause (`short_error()` takes the first line of the underlying error). `/ready` logs the same way.
+- Unexpected exceptions keep the full treatment: `ERROR`, stack trace, `500`. Flask picks the most specific handler, so the two cases are told apart automatically.
+- A **connect timeout** of 5 seconds (`connect_args={"connect_timeout": 5}`). It doesn't shorten the drill above, where the name lookup fails; it protects against a database that doesn't answer at all, where the API would otherwise wait longer than the frontend's 10-second timeout and every request would end in an unexplained timeout.
+- The import page no longer turns every `ApiError` into "The file changed"; a `503` shows the server's own message.
+
+After the fixes, the same drill produced one short line per failure:
+
+```json
+{"level": "WARNING", "message": "database unavailable", "request_id": "af913a97df0d", "error": "failed to resolve host 'db': [Errno -2] Name or service not known"}
+```
+
+### Drill 2: from the user's reference to the cause
+
+A planted `raise ValueError("drill: planted bug")` in the stats endpoint. The Stats page showed "Something went wrong on our side. Reference: a7dfa86c580f"; one search, `docker compose logs api | Select-String "a7dfa86c580f"`, returned the `ERROR` line with a stack trace pointing to `app.py`, the line of the `raise`. This is the key question of the milestone, answered end to end.
+
+### Drill 3: a slow API
+
+A planted 12-second delay in the list endpoint. After **10 seconds** (the client's timeout in `client.ts`) the page showed "Server is taking too long to respond." with Try again. About two seconds later, the server finished anyway and logged `status: 200`, `duration_ms` ≈ 12000.
+
+**Lesson:** a client timeout doesn't stop the server, and the log alone shows a "successful" request. Only `duration_ms` reveals that nobody was waiting for the answer any more, the same situation as a save whose answer is lost (milestone 05), seen from the server.
+
+### The real incident: deploys that silently stopped
+
+| | |
+|---|---|
+| **Symptom** | The live footer badge said "API unreachable", while the same page showed this week's totals, which come from the API |
+| **First finding** | The new frontend (Vercel) asked `/ready`; the API on Render answered `404`, because it was still the version from two days earlier. Every push since then had reached Vercel, none had reached Render |
+| **Root cause** | The Render app on GitHub no longer had access to the repository. Render never learned about the pushes, and nothing reported the missing deploys |
+| **Fix** | Repository access restored for the Render app; a manual deploy of the latest commit; then a test push to confirm automatic deploys again |
+| **Badge fix** | `checkReadiness()` now reports "offline" only when there is no answer at all (`NetworkError`). Any answer, even a `404`, means the API is reachable |
+| **Would have caught it earlier** | A deploy pipeline that reports failures (milestone 11), and a deploy order of backend first, frontend second. Frontend and backend deploy independently, so for a while a new frontend can talk to an old API |
+
+### Verified
+
+- **1 new backend test** (61 in total): a database failure deep inside a request returns `503` with the request ID in the message, and the underlying error text stays out of the response.
+- All three drills repeated after the fixes, with the planted bug and delay removed afterwards.
 
 ## Session 4: A full trace
 

@@ -6,7 +6,11 @@ from models import Workout
 from datetime import date, timedelta
 
 load_dotenv()
-engine = create_engine(os.environ["DATABASE_URL"], pool_pre_ping=True)            # from DATABASE_URL, as in check_db.py
+engine = create_engine(
+    os.environ["DATABASE_URL"],
+    pool_pre_ping=True,
+    connect_args={"connect_timeout": 5},        # seconds; give up instead of hanging
+)
 SessionLocal = sessionmaker(engine)    # a factory: SessionLocal() gives you a new session
 
 SORT_COLUMNS = {

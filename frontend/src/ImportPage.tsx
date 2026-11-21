@@ -58,7 +58,7 @@ function ImportPage() {
     } catch (err) {
       if (err instanceof NetworkError) {
         setError("We couldn't confirm the import. Check your workouts before uploading again.");
-      } else if (err instanceof ApiError) {
+      } else if (err instanceof ApiError && err.status !== 503) {
         setError("The file changed or is no longer valid. Choose it again to see a new preview.");
       } else {
         setError(errorMessage(err));

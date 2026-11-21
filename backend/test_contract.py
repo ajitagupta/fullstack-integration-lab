@@ -315,3 +315,17 @@ def test_not_ready_when_database_is_down(client, monkeypatch):
     response = client.get("/ready")
     assert response.status_code == 503
     assert response.get_json()["database"] == "unreachable"
+
+from sqlalchemy.exc import OperationalError
+
+def test_database_down_returns_503_with_reference(client, monkeypatch):
+    def unreachable(*args, **kwargs):
+        raise OperationalError("SELECT ...", {}, Exception("connection refused"))
+    monkeypatch.setattr(db, "search_workouts", unreachable)
+
+    response = client.get("/workouts")
+
+    assert response.status_code == 503
+    message = response.get_json()["errors"][0]["error"]
+    assert response.headers["X-Request-ID"] in message
+    assert "connection refused" not in message          # the detail stays in the log

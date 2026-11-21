@@ -11,6 +11,7 @@ import observability
 from observability import logger
 from flask import g
 from werkzeug.exceptions import HTTPException
+from sqlalchemy.exc import OperationalError
 
 app = Flask(__name__)
 observability.setup(app)
@@ -24,6 +25,11 @@ SORT_FIELDS = ["id", "distance_km", "duration_min"]
 
 def error_response(errors, status=400):
     return jsonify({"errors": errors}), status
+
+def short_error(e):
+    """The first line of the underlying error, e.g. "failed to resolve host 'db': …"."""
+    text = str(getattr(e, "orig", None) or e)
+    return text.splitlines()[0] if text else type(e).__name__
 
 @app.errorhandler(404)
 def not_found(e):
@@ -39,6 +45,14 @@ def unexpected_error(e):
         return e                                   # 404, 405, 413…: not crashes, keep their normal handling
     logger.exception("unhandled error", extra={"fields": {"request_id": g.get("request_id")}})
     return error_response([{"error": f"Something went wrong on our side. Reference: {g.get('request_id')}"}], 500)
+
+@app.errorhandler(OperationalError)
+def database_unavailable(e):
+    logger.warning("database unavailable", extra={"fields": {
+        "request_id": g.get("request_id"),
+        "error": short_error(e),                # one line, not a stack trace
+    }})
+    return error_response([{"error": f"The database is unavailable right now. Try again in a moment. Reference: {g.get('request_id')}"}], 503)
 
 def scheduled_job():
     count = db.count_workouts(None, None, None)
@@ -62,9 +76,9 @@ def health():
 def ready():
     try:
         db.ping()
-    except Exception:
-        logger.exception("readiness check failed", extra={"fields": {"request_id": g.request_id}})
-        return jsonify({"status": "not ready", "database": "unreachable"}), 503      # "service unavailable"
+    except Exception as e:
+        logger.warning("readiness check failed", extra={"fields": {"request_id": g.request_id, "error": short_error(e)}})
+        return jsonify({"status": "not ready", "database": "unreachable"}), 503
     return jsonify({"status": "ready", "database": "ok"})
 
 @app.get('/workouts')

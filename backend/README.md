@@ -37,14 +37,14 @@ Example import files are in [`samples/`](../samples): a CSV file, a GPX run, a F
 ```json
 { "errors": [ { "field": "distance_km", "error": "The key distance_km is missing." } ] }
 ```
-Invalid input is `400`, an unknown id is `404`, an upload over 1 MB is `413`. An unexpected error is `500` with a reference: the response's `X-Request-ID`, which every response carries and every log line contains. The full contract is in [`docs/api-contract.md`](../docs/api-contract.md).
+Invalid input is `400`, an unknown id is `404`, an upload over 1 MB is `413`. An unreachable database is `503` ("unavailable right now"), an unexpected error `500`, both with a reference: the response's `X-Request-ID`, which every response carries and every log line contains. The full contract is in [`docs/api-contract.md`](../docs/api-contract.md).
 
 ## Files
 
 | File | Role |
 |---|---|
 | `app.py` | Routes, request validation (`validate_workout_payload`), file checks for imports, the shared preview and import answers, error format, CORS |
-| `db.py` | Database access: engine (`pool_pre_ping`), queries, inserts in one transaction |
+| `db.py` | Database access: engine (`pool_pre_ping`, 5-second connect timeout), queries, inserts in one transaction, `ping()` for `/ready` |
 | `models.py` | The `Workout` model with its check constraints and indexes |
 | `migrations/` | Alembic migrations: the schema history |
 | `observability.py` | Request IDs and one JSON log line per request (`before_request` / `after_request`); `/health` and `/ready` are logged only when they fail |
