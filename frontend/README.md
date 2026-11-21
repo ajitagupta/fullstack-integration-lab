@@ -17,7 +17,7 @@ For the project overview, see the [main README](../README.md). Design decisions 
 | `/import` | `ImportPage` | Choose a CSV, GPX or FIT file, see a preview of every row with its date and status (OK, error, already imported), then import the new rows (only when all rows are valid) |
 | `/quick-add` | `QuickAddPage` | Type workouts as text, one per line; **Check** shows the same preview as an import, **Save** stores the new ones |
 
-Every page shares a layout (`App.tsx`): a navbar that collapses on narrow screens, and a footer with `ConnectionStatus`, which checks the API every 10 seconds.
+Every page shares a layout (`App.tsx`): a navbar that collapses on narrow screens, and a footer with `ConnectionStatus`, which asks the API's `/ready` every 10 seconds and shows Connected, Database unavailable or API unreachable.
 
 ## Structure
 

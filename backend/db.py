@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from sqlalchemy import Date, create_engine, select, func
+from sqlalchemy import Date, create_engine, select, func, text
 from sqlalchemy.orm import sessionmaker
 from models import Workout
 from datetime import date, timedelta
@@ -130,3 +130,8 @@ def existing_workout_keys(dates):
     with SessionLocal() as session:
         rows = session.execute(stmt).all()
     return {tuple(r) for r in rows}
+
+def ping():
+    """Raises if the database can't be reached."""
+    with engine.connect() as conn:
+        conn.execute(text("SELECT 1"))

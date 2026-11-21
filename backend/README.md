@@ -8,6 +8,8 @@ For the project overview, see the [main README](../README.md). Design decisions 
 
 | Method | Path | What it does | Success |
 |---|---|---|---|
+| `GET` | `/health` | Liveness: answers if the process runs; no database access | `200` |
+| `GET` | `/ready` | Readiness: checks the database with `SELECT 1`; `503` if it's unreachable | `200` |
 | `GET` | `/workouts` | List workouts: filters, sorting, pagination (see below) | `200` |
 | `GET` | `/workouts/<id>` | One workout | `200` |
 | `POST` | `/workouts` | Create a workout (JSON) | `201` |
@@ -45,7 +47,7 @@ Invalid input is `400`, an unknown id is `404`, an upload over 1 MB is `413`. An
 | `db.py` | Database access: engine (`pool_pre_ping`), queries, inserts in one transaction |
 | `models.py` | The `Workout` model with its check constraints and indexes |
 | `migrations/` | Alembic migrations: the schema history |
-| `observability.py` | Request IDs and one JSON log line per request (`before_request` / `after_request`) |
+| `observability.py` | Request IDs and one JSON log line per request (`before_request` / `after_request`); `/health` and `/ready` are logged only when they fail |
 | `importers.py` | One converter per input format (CSV, Strava CSV, GPX, FIT, typed text), chosen by file extension and, for CSV, by header; the text parser `parse_line` lives here too; GPX is read with `defusedxml`, FIT with `fitdecode` |
 | `cache.py` | Small in-memory cache for list queries; cleared on every write |
 | `seed.py` | Replaces **all** workouts with 40 sample workouts |

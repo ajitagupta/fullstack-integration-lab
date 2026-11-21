@@ -6,8 +6,9 @@
 
 | | |
 |---|---|
-| Status | Session 1 of 4 done |
+| Status | Sessions 1–2 of 4 done |
 | Header | `X-Request-ID` on every API response |
+| Endpoints | `GET /health`, `GET /ready` |
 | Log format | One JSON object per line, on stdout |
 
 ---
@@ -57,7 +58,38 @@ All of it lives in `observability.py`; `app.py` only calls `observability.setup(
 
 ## Session 2: Health checks
 
-_(planned)_
+### Two questions, two endpoints
+
+| Endpoint | Question | Checks | Answer |
+|---|---|---|---|
+| `GET /health` | *Is the API process running?* | Nothing | Always `200 {"status": "ok"}`, if it answers at all |
+| `GET /ready` | *Can it do real work right now?* | `SELECT 1` against the database (`db.ping()`) | `200 {"status": "ready", "database": "ok"}`, or `503 {"status": "not ready", "database": "unreachable"}` |
+
+**Why two:** when the database is down, restarting the API doesn't help. A platform that restarts services (Render) should look at `/health` only. But users should still learn that their data can't be loaded right now, and that's what `/ready` tells the frontend.
+
+### The connection badge
+
+The footer used to check the connection by loading one workout, and only knew "Connected" or "Not connected". It now asks `/ready` every 10 seconds and shows three states:
+
+| `/ready` | Badge |
+|---|---|
+| `200` | green **Connected** |
+| `503` | yellow **Database unavailable** |
+| no answer or timeout | red **API unreachable (it may be waking up)** |
+
+`checkReadiness()` turns the answer into one of three values (`"ready"`, `"database-down"`, `"offline"`), and the badge looks up text and colour in a `Record<Readiness, …>`, so TypeScript reports a state without a display.
+
+### Decisions
+
+- **`503`, not `500`, for an unreachable database.** `500` means "a bug"; `503 Service Unavailable` means "a dependency is temporarily missing, try again later", and both people and monitoring tools treat it that way.
+- **Quiet paths.** `/health` and `/ready` are logged only when they fail. Checks every few seconds would otherwise bury the interesting lines; a failed readiness check is still logged, with its stack trace and request ID. The `X-Request-ID` header is still set on every response.
+- **"It may be waking up".** On Render's free tier the first request after a pause can take about 30 seconds, longer than the client's 10-second timeout. The badge says so instead of only reporting an error.
+- **The readiness check is as small as possible.** `SELECT 1` proves the connection works without touching any table, so the check itself can't slow the database down.
+
+### Verified
+
+- **3 new backend tests** (60 in total): `/health` answers `200`; `/ready` answers `200` with a reachable database; with `db.ping` replaced by a function that raises, `/ready` answers `503` with `database: unreachable`.
+- In the browser, all three badge states: everything running → Connected; `docker compose stop db` → Database unavailable, with the failed checks in the API log; `docker compose stop api` → API unreachable; both started again → Connected.
 
 ## Session 3: Failure drills
 

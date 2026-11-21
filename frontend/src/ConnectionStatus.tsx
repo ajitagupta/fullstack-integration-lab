@@ -1,21 +1,26 @@
-import { useEffect, useState } from 'react';
-import { checkConnection } from './api/workout-api';
+import { useEffect, useState } from "react";
+import { checkReadiness, type Readiness } from "./api/workout-api";
+
+const DISPLAY: Record<Readiness, { text: string; badge: string }> = {
+  ready: { text: "Connected", badge: "text-bg-success" },
+  "database-down": { text: "Database unavailable", badge: "text-bg-warning" },
+  offline: { text: "API unreachable (it may be waking up)", badge: "text-bg-danger" },
+};
 
 function ConnectionStatus() {
-  const [connected, setConnected] = useState<boolean | null>(null);   // null = not checked yet
+  const [readiness, setReadiness] = useState<Readiness | null>(null);   // null = not checked yet
 
   useEffect(() => {
-    checkConnection().then((ok) => setConnected(ok));          // check immediately
-
-    const intervalId = setInterval(() => {
-      checkConnection().then((ok) => setConnected(ok));        // and then every 10 s
-    }, 10000);
-
-    return () => clearInterval(intervalId);                    // cleanup
+    checkReadiness().then(setReadiness);                                 // check immediately
+    const intervalId = setInterval(() => checkReadiness().then(setReadiness), 10000);   // then every 10 s
+    return () => clearInterval(intervalId);
   }, []);
 
-  if (connected === null) return <p>Checking API…</p>;
-  return <p role="status">{connected ? "Connected" : "Not connected"}</p>;
+  if (readiness === null) {
+    return <span className="badge text-bg-secondary">Checking API…</span>;
+  }
+  const { text, badge } = DISPLAY[readiness];
+  return <span role="status" className={`badge ${badge}`}>{text}</span>;
 }
 
 export default ConnectionStatus;

@@ -8,7 +8,7 @@ from flask import g, request
 
 logger = logging.getLogger("workouts")
 VALID_ID = re.compile(r"^[A-Za-z0-9-]{1,64}$")
-
+QUIET_PATHS = {"/health", "/ready"}
 
 class JsonFormatter(logging.Formatter):
     """One JSON object per line: easy to search and to feed into log tools."""
@@ -42,6 +42,8 @@ def setup(app):
     @app.after_request
     def finish_request(response):
         response.headers["X-Request-ID"] = g.request_id
+        if request.path in QUIET_PATHS and response.status_code < 400:
+            return response
         logger.info("request", extra={"fields": {
             "request_id": g.request_id,
             "method": request.method,

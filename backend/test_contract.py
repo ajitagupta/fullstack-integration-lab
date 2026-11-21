@@ -296,3 +296,22 @@ def test_crash_returns_500_with_reference(client, monkeypatch):
     request_id = response.headers["X-Request-ID"]
     assert request_id in response.get_json()["errors"][0]["error"]
     assert "exploded" not in response.get_data(as_text=True)    # internals stay in the log
+
+def test_health_is_ok(client):
+    response = client.get("/health")
+    assert response.status_code == 200
+    assert response.get_json() == {"status": "ok"}
+
+def test_ready_when_database_is_reachable(client):
+    response = client.get("/ready")
+    assert response.status_code == 200
+    assert response.get_json()["database"] == "ok"
+
+def test_not_ready_when_database_is_down(client, monkeypatch):
+    def unreachable():
+        raise ConnectionError("no route to host")
+    monkeypatch.setattr(db, "ping", unreachable)
+
+    response = client.get("/ready")
+    assert response.status_code == 503
+    assert response.get_json()["database"] == "unreachable"

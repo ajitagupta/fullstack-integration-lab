@@ -1,7 +1,7 @@
 // frontend/src/api/workout-api.ts
 import { request } from "./client";
 import { parseWorkout, parseWorkoutList, type NewWorkout, type Workout, type WorkoutListResponse } from "./workout-types";
-import { NetworkError, InvalidResponseError } from "./api-error";
+import { ApiError, InvalidResponseError } from "./api-error";
 import { parseWeeklyStats, type WeeklyStat, parseUploadPreview, type UploadPreview } from "./workout-types";
 
 export const PAGE_SIZE = 10;
@@ -106,12 +106,14 @@ export async function importText(text: string): Promise<ImportResult> {
   return toImportResult(data);
 }
 
-export async function checkConnection(): Promise<boolean> {
+export type Readiness = "ready" | "database-down" | "offline";
+
+export async function checkReadiness(): Promise<Readiness> {
   try {
-    await request("/workouts?limit=1");
-    return true;
+    await request("/ready");
+    return "ready";
   } catch (err) {
-    if (err instanceof NetworkError) return false;
-    return true;
+    if (err instanceof ApiError && err.status === 503) return "database-down";
+    return "offline";                       // no answer at all (or a timeout)
   }
 }

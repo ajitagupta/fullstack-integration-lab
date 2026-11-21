@@ -53,6 +53,20 @@ if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
     scheduler.add_job(scheduled_job, "interval", seconds=10)
     scheduler.start()
 
+@app.get("/health")
+def health():
+    return jsonify({"status": "ok"})
+
+
+@app.get("/ready")
+def ready():
+    try:
+        db.ping()
+    except Exception:
+        logger.exception("readiness check failed", extra={"fields": {"request_id": g.request_id}})
+        return jsonify({"status": "not ready", "database": "unreachable"}), 503      # "service unavailable"
+    return jsonify({"status": "ready", "database": "ok"})
+
 @app.get('/workouts')
 def get_workouts():
     sport = request.args.get("sport")
