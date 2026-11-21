@@ -24,7 +24,10 @@ function Layout() {
     <>
       <nav className="navbar navbar-expand-md navbar-dark bg-primary mb-4">
         <div className="container">
-          <NavLink className="navbar-brand" to="/">🏃 Workout Tracker</NavLink>
+          <NavLink className="navbar-brand d-flex align-items-center gap-2" to="/">
+            <img src="/favicon.svg" alt="" width="28" height="28" className="rounded-2 border border-white" />
+            Workout Tracker
+          </NavLink>
           <button
             className="navbar-toggler"
             type="button"
