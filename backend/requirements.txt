@@ -8,3 +8,4 @@ python-dotenv
 flask-cors
 defusedxml
 fitdecode
+pytest-cov
