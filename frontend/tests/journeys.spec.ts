@@ -42,3 +42,38 @@ test("add, view, edit and delete a workout", async ({ page }) => {
   await page.goto(`/workouts/${id}`);
   await expect(page.getByRole("alert")).toContainText("not found");
 });
+
+test("quick add: typed text is checked by the API", async ({ page }) => {
+  await page.goto("/quick-add");
+  await page.getByRole("textbox").fill("swam 1.5 km 40 min");
+  await page.getByRole("button", { name: "Check" }).click();
+
+  // The API parsed it, and the preview table shows the row
+  await expect(page.getByRole("table")).toBeVisible();
+  await expect(page.getByRole("table")).toContainText("swim");
+  await expect(page.getByRole("table")).toContainText("1.5");
+});
+
+test("import: a CSV file is previewed before anything is saved", async ({ page }) => {
+  await page.goto("/import");
+
+  // A file made in memory, so the test needs no file on disk
+  await page.locator('input[type="file"]').setInputFiles({
+    name: "e2e.csv",
+    mimeType: "text/csv",
+    buffer: Buffer.from("sport,distance_km,duration_min\nrun,7.77,42\n"),
+  });
+
+  const table = page.getByRole("table");
+  await expect(table).toContainText("run");
+  await expect(table).toContainText("7.77");
+});
+
+test("when the API is down, the user is told so", async ({ page }) => {
+  // Every request to the API fails, as if the server were off
+  await page.route("http://localhost:5000/**", (route) => route.abort());
+
+  await page.goto("/workouts");
+  await expect(page.getByText("API unreachable")).toBeVisible();
+  await expect(page.getByRole("alert")).toBeVisible();
+});
