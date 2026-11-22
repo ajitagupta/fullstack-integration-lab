@@ -46,7 +46,7 @@ Every feature crosses the same line: **browser → API → database**.
 - **Untrusted input handled in one pipeline:** CSV, GPX and FIT files and typed text all become the same rows, with one preview, one validation and one duplicate check.
 - **Tested at every layer:** pytest against a real test database, Vitest, a contract of real API responses checked by both sides, Playwright end to end.
 
-**Stack:** React · TypeScript · Vite · Bootstrap · Flask · SQLAlchemy 2.0 · Alembic · PostgreSQL · Docker · Vercel · Render · Neon · pytest · Vitest · Playwright · GitHub Actions
+**Stack:** React · TypeScript · Vite · Bootstrap · Flask · SQLAlchemy 2.0 · Alembic · PostgreSQL · Docker · Vercel · Render · Neon · pytest · Vitest · Playwright
 
 ---
 

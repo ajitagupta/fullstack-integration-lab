@@ -114,7 +114,7 @@ export function WorkoutForm({ workoutId, initialValues = EMPTY }: Props) {
 
             <div className="row g-3 mb-3">
               <div className="col-sm-6">
-              <label htmlFor="distance" className="form-label">Distance</label>
+              <label htmlFor="distance" className="form-label">Distance (km)</label>
                 <div className="input-group has-validation">
                   <input
                     type="number" step="any" min="0" placeholder="e.g. 5.2"
