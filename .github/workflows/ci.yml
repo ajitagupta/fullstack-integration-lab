@@ -110,6 +110,9 @@ jobs:
         working-directory: frontend
         run: npm ci
 
+      - name: No known vulnerabilities in shipped packages
+        run: npm audit --omit=dev --audit-level=high
+
       - name: Install the browser
         working-directory: frontend
         run: npx playwright install --with-deps chromium
