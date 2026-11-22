@@ -1,5 +1,10 @@
 // frontend/src/forms/validate-workout.ts
-import { SPORTS, type Sport, type NewWorkout, type Workout } from "../api/workout-types";
+import {
+  SPORTS,
+  type Sport,
+  type NewWorkout,
+  type Workout,
+} from "../api/workout-types";
 
 // What the form holds: always strings, straight from the inputs
 export type WorkoutFormValues = {
@@ -8,12 +13,13 @@ export type WorkoutFormValues = {
   duration: string;
 };
 
-
 export function toNewWorkout(values: WorkoutFormValues): NewWorkout {
   return {
     sport: values.sport as Sport,
-    distance_km: values.distance.trim() !== "" ? Number(values.distance) : undefined,
-    duration_min: values.duration.trim() !== "" ? Number(values.duration) : undefined
+    distance_km:
+      values.distance.trim() !== "" ? Number(values.distance) : undefined,
+    duration_min:
+      values.duration.trim() !== "" ? Number(values.duration) : undefined,
   };
 }
 
@@ -34,51 +40,38 @@ export function validateWorkout(values: WorkoutFormValues): FieldErrors {
   // --- sport ---
   if (!(SPORTS as readonly string[]).includes(values.sport)) {
     errors.sport = "Please choose a sport.";
-   }
+  }
 
   // --- distance ---
   if (distanceGiven) {
-    if (Number.isNaN(distance))
-    {
-        errors.distance = "Distance provided is not a number."
+    if (Number.isNaN(distance)) {
+      errors.distance = "Distance provided is not a number.";
+    } else if (distance < 0) {
+      errors.distance = "Distance provided is negative.";
     }
-    else if (distance < 0)
-    {
-        errors.distance = "Distance provided is negative."
-    }    
-
   } else {
-    if (DISTANCE_REQUIRED.includes(values.sport))
-    {
-        errors.distance = "Distance is required for run, swim and cycle.";
+    if (DISTANCE_REQUIRED.includes(values.sport)) {
+      errors.distance = "Distance is required for run, swim and cycle.";
     }
   }
 
   // --- duration ---
   if (durationGiven) {
-    if (Number.isNaN(duration))
-    {
-        errors.duration = "Duration provided is not a number."
+    if (Number.isNaN(duration)) {
+      errors.duration = "Duration provided is not a number.";
+    } else if (!Number.isInteger(duration)) {
+      errors.duration = "Duration must be a whole number of minutes.";
+    } else if (duration < 0) {
+      errors.duration = "Duration provided is negative.";
     }
-    else if (!Number.isInteger(duration))
-    {
-        errors.duration = "Duration must be a whole number of minutes.";
-    }
-    else if (duration < 0)
-    {
-        errors.duration = "Duration provided is negative."
-    }    
-
   } else {
-    if (!DURATION_OPTIONAL.includes(values.sport))
-    {
-        errors.duration = "Duration is required (except for rest days).";
+    if (!DURATION_OPTIONAL.includes(values.sport)) {
+      errors.duration = "Duration is required (except for rest days).";
     }
   }
 
   return errors;
 }
-
 
 export function toFormValues(workout: Workout): WorkoutFormValues {
   return {

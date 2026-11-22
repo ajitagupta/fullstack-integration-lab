@@ -41,9 +41,6 @@ export async function createWorkout(workout: NewWorkout): Promise<Workout> {
 }
 
 export async function updateWorkout(id: number, workout: NewWorkout): Promise<Workout> {
-  // TODO: the same as createWorkout, but:
-  //   - the URL includes the id (template string with backticks)
-  //   - the method is "PUT"
   const data = await request(`/workouts/${id}`, {
     method: "PUT",                                // which HTTP method creates something?
     headers: { "Content-Type": "application/json" },
@@ -75,13 +72,7 @@ export function toImportResult(data: unknown): ImportResult {
 export async function uploadWorkouts(file: File): Promise<ImportResult> {
   const body = new FormData();
   body.append("file", file);
-  const data = await request("/workouts/upload", { method: "POST", body });
-
-  const result = data as { inserted?: unknown; skipped?: unknown };
-  if (typeof result?.inserted !== "number" || typeof result?.skipped !== "number") {
-    throw new InvalidResponseError("inserted and skipped must be numbers.");
-  }
-  return toImportResult(data);
+  return toImportResult(await request("/workouts/upload", { method: "POST", body }));
 }
 
 export async function previewUpload(file: File, signal?: AbortSignal): Promise<UploadPreview> {

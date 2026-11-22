@@ -7,16 +7,23 @@ import { createWorkout, updateWorkout } from "../api/workout-api";
 import { NetworkError } from "../api/api-error";
 
 // Replace the real API call with a fake we control
-vi.mock("../api/workout-api", () => ({ createWorkout: vi.fn(), updateWorkout: vi.fn() }));
+vi.mock("../api/workout-api", () => ({
+  createWorkout: vi.fn(),
+  updateWorkout: vi.fn(),
+}));
 
 afterEach(() => {
-  cleanup();             // remove the rendered form after each test
-  vi.clearAllMocks();    // forget what the fake did
+  cleanup(); // remove the rendered form after each test
+  vi.clearAllMocks(); // forget what the fake did
 });
 
 function renderForm() {
   // MemoryRouter: the form contains a <Link>, which needs a router
-  render(<MemoryRouter><WorkoutForm /></MemoryRouter>);
+  render(
+    <MemoryRouter>
+      <WorkoutForm />
+    </MemoryRouter>,
+  );
 }
 
 async function fillValidRun(user: ReturnType<typeof userEvent.setup>) {
@@ -27,19 +34,29 @@ async function fillValidRun(user: ReturnType<typeof userEvent.setup>) {
 
 describe("WorkoutForm", () => {
   it("says the save is unconfirmed when no answer arrives", async () => {
-    vi.mocked(createWorkout).mockRejectedValue(new NetworkError("Server is taking too long to respond."));
+    vi.mocked(createWorkout).mockRejectedValue(
+      new NetworkError("Server is taking too long to respond."),
+    );
     const user = userEvent.setup();
     renderForm();
 
     await fillValidRun(user);
     await user.click(screen.getByRole("button", { name: "Add workout" }));
 
-    expect(await screen.findByText(/couldn't confirm the save/i)).toBeInTheDocument();
-    expect(screen.getByLabelText("Distance (km)")).toHaveValue(5);   // input kept
+    expect(
+      await screen.findByText(/couldn't confirm the save/i),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText("Distance (km)")).toHaveValue(5); // input kept
   });
 
   it("resets the form after a successful save", async () => {
-    vi.mocked(createWorkout).mockResolvedValue({ id: 99, sport: "run", distance_km: 5, duration_min: 30, performed_on: '2026-11-22' });
+    vi.mocked(createWorkout).mockResolvedValue({
+      id: 99,
+      sport: "run",
+      distance_km: 5,
+      duration_min: 30,
+      performed_on: "2026-11-22",
+    });
     const user = userEvent.setup();
     renderForm();
 
@@ -47,18 +64,26 @@ describe("WorkoutForm", () => {
     await user.click(screen.getByRole("button", { name: "Add workout" }));
 
     expect(await screen.findByText("Workout #99 saved.")).toBeInTheDocument();
-    expect(screen.getByLabelText("Distance (km)")).toHaveValue(null);   // input reset
+    expect(screen.getByLabelText("Distance (km)")).toHaveValue(null); // input reset
   });
-
 });
 
 it("edits an existing workout with PUT", async () => {
-  vi.mocked(updateWorkout).mockResolvedValue({ id: 7, sport: "run", distance_km: 5, duration_min: 45, performed_on: '2026-11-22' });
+  vi.mocked(updateWorkout).mockResolvedValue({
+    id: 7,
+    sport: "run",
+    distance_km: 5,
+    duration_min: 45,
+    performed_on: "2026-11-22",
+  });
   const user = userEvent.setup();
   render(
     <MemoryRouter>
-      <WorkoutForm workoutId={7} initialValues={{ sport: "run", distance: "5", duration: "30" }} />
-    </MemoryRouter>
+      <WorkoutForm
+        workoutId={7}
+        initialValues={{ sport: "run", distance: "5", duration: "30" }}
+      />
+    </MemoryRouter>,
   );
 
   // the form starts filled in, in edit mode
@@ -69,6 +94,10 @@ it("edits an existing workout with PUT", async () => {
   await user.type(duration, "45");
   await user.click(screen.getByRole("button", { name: "Save changes" }));
 
-  expect(updateWorkout).toHaveBeenCalledWith(7, { sport: "run", distance_km: 5, duration_min: 45 });
+  expect(updateWorkout).toHaveBeenCalledWith(7, {
+    sport: "run",
+    distance_km: 5,
+    duration_min: 45,
+  });
   expect(createWorkout).not.toHaveBeenCalled();
 });

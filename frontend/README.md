@@ -1,87 +1,63 @@
-# Frontend — Workout Tracker UI
+# Frontend - Workout Tracker UI
 
-The browser app of the workout tracker: **React 19**, **TypeScript** and **Vite**, with **React Router** and **Bootstrap 5** (teal theme). It lists, filters, adds, edits and deletes workouts, imports them from CSV, GPX and FIT files (including Strava's export) or from typed text, and charts them per week, all through the [backend API](../backend/README.md).
-
-For the project overview, see the [main README](../README.md). Design decisions per milestone are in [`docs/`](../docs).
+React 19, TypeScript and Vite, with React Router, Bootstrap 5 and Recharts. For the overview, see the [main README](../README.md).
 
 ## Pages
 
-| Route | Component | What it does |
-|---|---|---|
-| `/` | `HomePage` | Short intro, this week's totals, and the three ways to add workouts |
-| `/workouts` | `WorkoutsPage` | List with sport filter, sort order and pagination; the state lives in the URL (`?sport=swim&sort=-distance_km&page=2`) |
-| `/workouts/:id` | `WorkoutDetailsPage` | One workout, with Edit and Delete (inline confirmation) |
-| `/workouts/new` | `forms/WorkoutForm` | Add a workout |
-| `/workouts/:id/edit` | `EditWorkoutPage` | Loads the workout, then shows the same form in edit mode |
-| `/stats` | `StatsPage` | Stacked bar charts of distance and time per week and sport (Recharts) |
-| `/import` | `ImportPage` | Choose a CSV, GPX or FIT file, see a preview of every row with its date and status (OK, error, already imported), then import the new rows (only when all rows are valid) |
-| `/quick-add` | `QuickAddPage` | Type workouts as text, one per line; **Check** shows the same preview as an import, **Save** stores the new ones |
+| Route | What it does |
+|---|---|
+| `/` | Intro, this week's totals, and the ways to add workouts |
+| `/workouts` | List with sport filter, sorting and pages; the filters are in the URL |
+| `/workouts/:id` | One workout, with Edit and Delete |
+| `/workouts/new` | Add a workout |
+| `/workouts/:id/edit` | Edit a workout (same form) |
+| `/quick-add` | Type workouts as text; **Check** shows a preview, **Save** stores them |
+| `/import` | Choose a CSV, GPX or FIT file, see a preview, then import |
+| `/stats` | Charts of distance and time per week |
 
-Every page shares a layout (`App.tsx`): a navbar that collapses on narrow screens, and a footer with `ConnectionStatus`, which asks the API's `/ready` every 10 seconds and shows Connected, Database unavailable or API unreachable.
+The footer shows whether the API and the database can be reached (it asks `/ready` every 10 seconds).
 
 ## Structure
 
 | Folder / file | Role |
 |---|---|
-| `src/api/client.ts` | `request()`: every call to the API goes through here. Builds the URL from `VITE_API_URL`, applies a timeout, and turns each failure into a named error |
-| `src/api/api-error.ts` | `ApiError` (the API answered with an error), `NetworkError` (no answer), `RequestCancelledError` (aborted on purpose) |
-| `src/api/workout-api.ts` | One function per endpoint (`getWorkouts`, `createWorkout`, `previewUpload`, `uploadWorkouts`, `previewText`, `importText`, `getWeeklyStats`, …); `PAGE_SIZE` |
-| `src/api/workout-types.ts` | The `Workout` type and a runtime check of every response, since TypeScript types disappear at runtime |
-| `src/api/error-message.ts` | Turns any error into a message for the user |
-| `src/forms/` | The add/edit form and its validation, which mirrors the server's rules |
-| `src/import/` | `PreviewTable`, shared by the Import and Quick add pages, and `workoutCount` |
-| `src/sports.ts` | One colour and icon per sport, shared by the list, the details page and the charts |
-| `src/index.css` | The teal theme on top of Bootstrap (CSS variables) |
-| `src/stats/` | The weekly chart and `toWeeklyChart`, which reshapes the API's rows for it |
-| `tests/` | Playwright end-to-end tests |
-
-## How the pages behave
-
-- **Every state is shown:** loading, error with **Try again**, empty, and data. An empty list distinguishes "no workouts yet", "no matches for this filter" and "page out of range".
-- **Outdated requests are cancelled.** Each list or detail load runs in an effect with its own `AbortController`; changing a filter aborts the previous request, so an old answer can't overwrite a newer one.
-- **The server stays the authority.** The form validates in the browser for quick feedback, and maps the server's field errors back to the right input. If a save can't be confirmed (no answer), it says so instead of claiming failure.
-- **Imports are all or nothing.** The import page checks file type and size first, shows the server's preview with errors per row, enables importing only when every row is valid, and says "couldn't confirm" when the answer is lost, so a second upload doesn't create duplicates.
-- **Accessible forms:** labels, `aria-invalid`, `aria-describedby`, `role="alert"` for errors, `role="status"` for updates.
+| `src/api/client.ts` | Every API call goes through `request()`: 10-second timeout, one error type per kind of failure |
+| `src/api/workout-api.ts` | One function per endpoint |
+| `src/api/workout-types.ts` | Types and runtime checks for every response |
+| `src/forms/` | The add/edit form and its validation |
+| `src/import/` | The preview table, shared by Import and Quick add |
+| `src/stats/` | The weekly chart and the function that reshapes the data for it |
+| `src/sports.ts` | One colour and icon per sport |
+| `src/format-date.ts` | Shows dates as "22 Nov 2026" |
+| `tests/` | Playwright journeys |
 
 ## Configuration
 
 | Variable | Purpose |
 |---|---|
-| `VITE_API_URL` | Address of the API, without a trailing `/`. Default: `http://localhost:5000` |
+| `VITE_API_URL` | Address of the API, without a trailing `/` (default `http://localhost:5000`) |
 
-Anything prefixed with `VITE_` is built into the JavaScript bundle and visible to every visitor. Never put secrets there.
+`VITE_` variables end up in the JavaScript that every visitor downloads. Never put secrets there.
 
 ## Run it
 
-**With Docker** (recommended), from the repo root:
-```powershell
-docker compose up --build
-```
-Open http://localhost:5173. The `frontend` folder is mounted into the container, so code changes reload live without a rebuild.
+With Docker, from the repo root: `docker compose up --build`, then open http://localhost:5173. Code changes reload live.
 
-**Without Docker**, from `frontend/`:
-```powershell
-npm install
-npm run dev
-```
+Without Docker, from `frontend/`: `npm install`, then `npm run dev`.
 
 ## Scripts
 
 | Command | What it does |
 |---|---|
 | `npm run dev` | Development server on port 5173 |
-| `npm run build` | Type check (`tsc -b`) and production build. Unused variables fail the build, as they do on Vercel |
-| `npm test` | Unit and component tests (Vitest + Testing Library); the API is faked with `vi.mock` |
-| `npx vitest run --coverage` | The same tests once, with a coverage report for every file in `src/` |
-| `npm run test:e2e` | End-to-end journeys in a real browser (Playwright); needs the whole stack running (`docker compose up -d`) |
-| `npm run lint` | Linting (oxlint) |
+| `npm run build` | Type check and production build |
+| `npm test` | Vitest tests (the API is faked) |
+| `npx vitest run --coverage` | The same, once, with a coverage report |
+| `npm run test:e2e` | Playwright journeys in a real browser; needs `docker compose up -d` |
+| `npm run lint` | oxlint |
 
-Test files and the Playwright journeys in `tests/` use their own TypeScript settings (`tsconfig.test.json`), with Vitest's globals and the Node types.
-
-`src/api/contract.test.ts` reads the example responses in `../contracts/`, written by the backend's tests, and checks them with the same parsers the app uses. If the API changes a response and the frontend doesn't follow, this test fails.
+`src/api/contract.test.ts` checks the example responses in `../contracts/`, written by the backend tests.
 
 ## Deployment
 
-Deployed on **Vercel** with `frontend` as the root folder and `VITE_API_URL` set to the Render address. `vercel.json` sends every path to `index.html`, so a reload on `/workouts/5` still works. The API must list the Vercel address in its `CORS_ORIGINS`.
-
-Production deploys come from CI, not from the push: `vercel.json` turns off Vercel's automatic deploys for `main`, and the `deploy` job in `.github/workflows/ci.yml` calls a Vercel deploy hook once all tests have passed and the new API is live. Other branches still get preview deploys. CI also runs `npm run lint`, `npx vitest run --coverage`, `npm run build`, the Playwright journeys and `npm audit --omit=dev --audit-level=high`.
+Vercel, with `frontend` as the root folder and `VITE_API_URL` set to the Render address. `vercel.json` sends every path to `index.html`, and turns off Vercel's own deploys for `main`: CI deploys the frontend after the tests pass and the new API is live ([`docs/11-ci-cd.md`](../docs/11-ci-cd.md)).

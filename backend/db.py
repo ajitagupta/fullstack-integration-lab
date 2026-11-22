@@ -84,7 +84,6 @@ def search_workouts(sport, min_distance, min_duration, limit, offset, sort="id")
         .limit(limit)
         .offset(offset)
     )    
-    conditions = build_conditions(sport, min_distance, min_duration)
     with SessionLocal() as session:
         workouts = session.scalars(stmt).all()
         return [to_dict(w) for w in workouts]              # a list of dicts, using to_dict()

@@ -1,70 +1,28 @@
-# 01 — Migrate persistence to PostgreSQL
+# 01 - PostgreSQL
 
-The Flask API moved from a local SQLite file to PostgreSQL 18, with SQLAlchemy as the ORM and Alembic for versioned migrations. The API's behaviour stayed the same: all baseline tests written against SQLite pass against PostgreSQL.
+The API moved from a SQLite file to PostgreSQL 18, with SQLAlchemy 2.0 as the ORM and Alembic for migrations. The API behaved the same afterwards: all baseline tests passed.
+
+## What was built
+
+- `db.py` rewritten with SQLAlchemy; function names and return values kept, so `app.py` barely changed.
+- An Alembic migration creates the `workouts` table. `init_db()` was removed, so the schema is defined in one place.
+- Named check constraints, e.g. `ck_workouts_distance_required` (run, swim and cycle need a distance).
+- Batch inserts (CSV, text) in **one transaction**: if one row fails, none are saved.
+- A separate test database (`TEST_DATABASE_URL`), emptied before every test.
+- `seed.py`: replaces all workouts with 40 sample workouts.
 
 ## Decisions
 
-### Database library: SQLAlchemy ORM
-I chose SQLAlchemy 2.0 (ORM) with psycopg 3 as the driver, to learn an ORM, accepting a larger rewrite of `db.py` than a plain driver would have needed. To keep the API's behaviour unchanged, the function names and return values of `db.py` stayed the same; only their insides changed. `app.py` was not touched apart from removing `init_db()`.
+- `duration_min` is an `integer`. The API rejects `30.5` with a `400`; otherwise the database would silently round it to `31`.
+- `distance_km` is a `double precision`, so `5.0` stays a number in JSON (`Numeric` would turn it into the string `"5.00"`).
+- The API still checks every rule before the database does: database errors are technical and would reach the user as a `500`.
 
-### Configuration
-The connection comes from `DATABASE_URL` in `backend/.env` (not committed). `.env.example` documents the variables without real values.
+## Lessons
 
-### Schema
-| Column | Type | Null allowed | Reason |
-|---|---|---|---|
-| `id` | integer, generated | no | Primary key from a sequence |
-| `sport` | varchar(20) | no | Every workout has a sport |
-| `distance_km` | double precision | yes | Distances have decimals (1.5 km); `Numeric` would turn `5.0` into the string `"5.00"` in JSON |
-| `duration_min` | integer | yes | Durations are whole minutes |
+- With one commit per row, a failure on row 3 left rows 1 and 2 saved. A test that sends one bad row through `db.add_workouts()` proves the rollback now.
+- Tests must never use the development database. `conftest.py` switches `DATABASE_URL` before `db.py` is imported.
 
-### Whole minutes
-`duration_min` is stored as whole minutes. The API rejects fractional values like `30.5` with `400`; `30.0` is accepted. Without this check, the `integer` column would silently round `30.5` to `31`. As a result, `GET` now returns `30` instead of `30.0`.
-
-### Migrations
-The schema is managed by Alembic (`backend/migrations/`). `init_db()` was removed, so only one place defines the schema. Applied migrations are recorded in the `alembic_version` table.
-
-## Constraints
-| Name | Rule |
-|---|---|
-| `ck_workouts_sport_allowed` | `sport` is one of swim, run, cycle, strength, badminton, rest |
-| `ck_workouts_distance_non_negative` | `distance_km` is empty or ≥ 0 |
-| `ck_workouts_duration_non_negative` | `duration_min` is empty or ≥ 0 |
-| `ck_workouts_distance_required` | Run, swim and cycle need a distance |
-| `ck_workouts_duration_required` | Every sport except rest needs a duration |
-
-Each constraint is named, so a rejected row shows which rule failed, e.g. `violates check constraint "ck_workouts_distance_required"`.
-
-## Server validation vs. database constraints
-| Rule | API (`create_workout` / `validate_data`) | Database |
-|---|---|---|
-| Body is valid JSON | ✅ | — |
-| `sport` present and not empty | ✅ | `NOT NULL` |
-| `sport` is one of the six allowed | ✅ | `ck_workouts_sport_allowed` |
-| `distance_km` / `duration_min` are numbers | ✅ (clear 400 message) | Column types: technical error only |
-| `duration_min` is a whole number | ✅ | ⚠️ `integer` would silently round |
-| `distance_km` ≥ 0 | ✅ | `ck_workouts_distance_non_negative` |
-| `duration_min` ≥ 0 | ✅ | `ck_workouts_duration_non_negative` |
-| Run, swim, cycle need a distance | ✅ | `ck_workouts_distance_required` |
-| Every sport except rest needs a duration | ✅ | `ck_workouts_duration_required` |
-
-The column types already define which input the database accepts, so "must be a number" needs no extra constraint. The API still checks it first: the database's errors are technical and would reach the user as a `500`, and for whole minutes it would not even error but silently round. The API gives a clear `400`; the database is the final guarantee if a code path ever skips validation. The frontend adds client-side checks for fast feedback in milestone 05.
-
-## Transactions and rollback
-**Problem:** CSV upload and parse saved each row with its own commit. If the database failed on row 3 of 5, rows 1 and 2 stayed saved.
-
-**Fix:** `db.add_workouts()` saves a whole batch in one transaction (`SessionLocal.begin()`): it commits only if every row succeeds and rolls back everything otherwise. Upload and parse now use it.
-
-**Proof:** `test_failed_batch_rolls_back_completely` passes two valid workouts and one invalid one (a swim without a distance) directly to `db.add_workouts()`, bypassing API validation. The database rejects the swim with `IntegrityError`, and the two valid workouts are not saved either: the total stays the same. With per-row commits, the same test failed with 104 vs. 102, so two rows were left behind.
-
-## Tests
-14 tests pass against PostgreSQL: 3 caching tests, 8 baseline tests, 2 whole-minute tests, 1 rollback test.
-
-## Test database
-Tests run against a separate database (`workouts_test`, from `TEST_DATABASE_URL`). `conftest.py` switches `DATABASE_URL` before `db.py` is imported, and an autouse fixture empties the table (`TRUNCATE … RESTART IDENTITY`) before every test. Proof: the development database had 104 rows before and after a full test run.
-
-**Local setup (once):**
-Install PostgreSQL 18 from [postgresql.org/download](https://www.postgresql.org/download/) (Stack Builder is not needed) and add `C:\Program Files\PostgreSQL\18\bin` to your user `PATH`.
+## Setup (once, without Docker)
 
 ```sql
 -- psql -U postgres
@@ -72,29 +30,15 @@ CREATE ROLE workouts_app WITH LOGIN PASSWORD 'your-password';
 CREATE DATABASE workouts OWNER workouts_app;
 CREATE DATABASE workouts_test OWNER workouts_app;
 ```
-Copy `backend/.env.example` to `backend/.env` and fill in the password. Then create the schema in both databases and run the tests:
+
+Copy `backend/.env.example` to `backend/.env`, fill in the password, then from `backend/`:
+
 ```powershell
-cd backend
-python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
-$env:DATABASE_URL = "postgresql+psycopg://workouts_app:your-password@localhost:5432/workouts_test"   # point at the TEST database
-alembic upgrade head                      # → creates the schema in workouts_test
-Remove-Item Env:DATABASE_URL              # remove the override
-alembic upgrade head                      # → DATABASE_URL now comes from backend/.env
-                                          #   → creates the schema in workouts
+$env:DATABASE_URL = "<the workouts_test URL>"
+alembic upgrade head          # schema in the test database
+Remove-Item Env:DATABASE_URL
+alembic upgrade head          # schema in the development database
 pytest
 ```
 
-## Sample data
-`python seed.py` empties the development table and inserts 40 sample workouts in one transaction. `random.seed(42)` makes the data identical on every run.
-
-## Rebuild from scratch
-```powershell
-alembic downgrade base
-alembic upgrade head
-python seed.py
-```
-This drops the table, recreates it with all constraints from the migration, and refills it.
-
-Run from `backend/` with the venv active (local PostgreSQL). With Docker, prefix each command with `docker compose exec api`, e.g. `docker compose exec api alembic downgrade base`.
+Rebuild from scratch: `alembic downgrade base`, `alembic upgrade head`, `python seed.py`.

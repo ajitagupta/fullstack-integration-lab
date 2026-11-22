@@ -1,66 +1,37 @@
-# 04 — First vertical slice
+# 04 - First deployment
 
-The workout pages handle every state a user can meet and cancel outdated requests. The whole slice is deployed early, so production problems surface now.
+The list and details pages show every state and cancel outdated requests. The app was deployed early, to meet deployment problems while the app was still small.
 
 ## Live
-| Part | Service | Address / notes |
+
+| Part | Service | Notes |
 |---|---|---|
-| Frontend | Vercel (Vite) | https://workout-tracker-ajita.vercel.app · root `frontend` · `VITE_API_URL` = Render address (no trailing `/`) · `vercel.json` rewrites all paths to `index.html` |
-| API | Render (Docker, free, Frankfurt) | https://workouts-tracker-7b09.onrender.com · env: `DATABASE_URL`, `CORS_ORIGINS`, `PORT=5000` |
-| Database | Neon (free, Frankfurt) | Direct (non-pooled) connection; free tier doesn't expire |
+| Frontend | Vercel | https://workout-tracker-ajita.vercel.app · `VITE_API_URL` = the Render address |
+| API | Render (Docker, free tier) | https://workouts-tracker-7b09.onrender.com · needs `DATABASE_URL`, `CORS_ORIGINS`, `PORT=5000` |
+| Database | Neon (free tier) | |
 
-`CORS_ORIGINS=https://workout-tracker-ajita.vercel.app,http://localhost:5173`
+Migrations and demo data are applied from the laptop:
 
-Schema and demo data on Neon, from the laptop:
 ```powershell
-$env:DATABASE_URL = "postgresql+psycopg://...neon.tech/...?sslmode=require"
+$env:DATABASE_URL = "<Neon connection string>"
 alembic upgrade head
-python seed.py
+python seed.py      # only for demo data: it deletes all workouts
 Remove-Item Env:DATABASE_URL
 ```
 
-## Page states
-One `status` (`"loading" | "success" | "error"`) instead of separate flags; "empty" is `success` with no workouts.
+## What was built
 
-| State | Shown | Role |
-|---|---|---|
-| Loading | "Loading workouts…" | `status` |
-| Error | Message + **Try again** (`onClick={() => load()}`) | `alert` |
-| Empty | "No workouts yet — add your first one." | — |
-| Data | The list | — |
+- One `status` per page (`loading`, `success`, `error`); "empty" is a success with no workouts.
+- Every page effect gets an `AbortController` and aborts in its cleanup, so an old answer can't update a page that has moved on.
+- `client.ts` tells a cancelled request apart from a timeout.
 
-`ConnectionStatus` re-checks every 10 s (`setInterval`, cleared in the effect's cleanup).
+## Lessons
 
-## Cancelling outdated requests
-Each page effect creates an `AbortController`, passes its signal to `getWorkouts` / `getWorkout`, and aborts in the cleanup — no answer can update a page that has moved on. `client.ts` tells the two abort reasons apart (caller first):
-
-| Reason | Error | User sees |
-|---|---|---|
-| Page left / id changed | `RequestCancelledError` | Nothing |
-| No answer within 10 s | `NetworkError` | "Server is taking too long to respond." |
-
-Visible in development: React's StrictMode mounts twice, so the Network tab shows a cancelled `workouts` request followed by a `200`.
-
-## Lessons learned
-**React**
-- `.then(setX(value))` calls the setter immediately; `.then()` needs a function: `.then((v) => setX(v))`. Ask: who calls it, and with what?
-
-**Configuration**
-- Remote database URLs live only in Neon and Render — never in a file in the repo folder. Check `echo $env:DATABASE_URL` before running anything against a remote database; no "Running upgrade" line from Alembic means it hit an already-migrated (wrong) database.
-- Every address appears in configuration somewhere: renaming the Vercel domain meant updating `CORS_ORIGINS`, the README and the docs.
-
-**Deployment**
-- Vercel installs only what `package.json` declares: test libraries installed locally but never recorded broke the first build. Tests are now also excluded from the app's type check (`tsconfig.app.json`).
-- `VITE_` variables are baked in at build time — changing one needs a redeploy, and they are public.
-- "Not connected" after deploying: the new origin wasn't in `CORS_ORIGINS` — fixed in Render's settings, no code change.
-- Direct loads of `/workouts` returned 404 until `vercel.json` rewrote all paths to `index.html` (Vite's dev server does this automatically).
-- `DEPLOYMENT_NOT_FOUND` = unknown domain; `NOT_FOUND` = unknown path.
-- `PORT=500` instead of `5000`: Render waited 10 minutes, then failed. The app's own log showed the real port.
-
-**Debugging**
-- A Playwright test timing out on a missing link: check `docker compose ps` first; `test-results/.../error-context.md` shows what the page displayed.
-- `ERR_CONNECTION_REFUSED` in the Console is logged by the browser even when the app handles the failure.
-
-### Cold start (Render free tier)
-- Measured 13 Nov: server awake after ~25 s; the client times out at 10 s, so the first load shows the timeout error, and **Try again** works afterwards.
-- Decision: **C, accept and document.** A free-tier limitation, not an app bug; noted in the README.
+- `VITE_` variables are built into the bundle: changing one needs a redeploy, and they are public.
+- Vercel installs only what `package.json` lists. Test packages installed but never saved broke the first build.
+- A direct visit to `/workouts` returned 404 until `vercel.json` sent all paths to `index.html`.
+- A new frontend address must be added to `CORS_ORIGINS`.
+- `PORT=500` instead of `5000` made Render wait 10 minutes and fail.
+- Connection strings live only in Neon, Render and the terminal, never in a file in the repo.
+- **Production bug:** after a few idle minutes, the first request failed with a `500`. Neon closes idle connections, and the pool handed out a dead one. `pool_pre_ping=True` checks a connection before using it.
+- **Cold start:** Render's free tier sleeps after 15 minutes and needs about 25 seconds to wake up. The client gives up after 10, so the first visit shows an error, and "Try again" works. Accepted and noted in the README.

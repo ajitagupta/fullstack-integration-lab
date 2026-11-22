@@ -83,9 +83,9 @@ function ImportPage() {
 
         <div className="card shadow-sm mb-4">
           <div className="card-body p-4">
-            <label htmlFor="csv-file" className="form-label fw-semibold">Choose a file</label>
+            <label htmlFor="import-file" className="form-label fw-semibold">Choose a file</label>
             <input
-              id="csv-file"
+              id="import-file"
               type="file"
               accept={ACCEPTED.join(",")}
               onChange={chooseFile}

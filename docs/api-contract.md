@@ -1,30 +1,43 @@
 # API contract
 
-## Target contract (from milestone 03)
-Decisions taken in milestone 03. Where the current state below differs, the code is changed to match this section.
+The rules every endpoint follows. The list of endpoints is in the [backend README](../backend/README.md#endpoints).
 
-### Status codes
-| Situation | Status |
+## Status codes
+
+| Code | When |
 |---|---|
-| Read succeeded | `200` |
-| Something was created (`POST /workouts`, `/workouts/upload`, `/workouts/parse`; for `/workouts/parse` also `inserted: 0`) | `201` |
-| Invalid input (body, file, text or query parameter), including an upload with no workout rows (header only) | `400` |
-| Upload larger than 1 MB | `413` |
-| Resource not found (including non-numeric ids like `/workouts/abc`) | `404` |
+| `200` | A read, an update or a preview succeeded |
+| `201` | Something was created (a workout, an import) |
+| `204` | A workout was deleted (no body) |
+| `400` | The input is invalid |
+| `404` | Unknown URL or workout id |
+| `413` | The upload is larger than 1 MB |
+| `500` | An unexpected error (a bug) |
+| `503` | The database can't be reached |
 
-### Error format
-Every error response is JSON with a list of errors, even when there is only one:
+## Error format
+
+Every error has the same shape:
+
 ```json
 { "errors": [ { "field": "distance_km", "error": "The key distance_km is missing." } ] }
 ```
-| Key | Present when | Example |
-|---|---|---|
-| `error` | always | `"The key distance_km is missing."` |
-| `field` | the error belongs to one field or query parameter | `"distance_km"`, `"limit"` |
-| `row` | the error belongs to a CSV row or a parse line | `2` |
 
-CSV upload example (nothing is imported):
+- `field` names the input that's wrong, if there is one.
+- `row` is added for imports, so the page can point to the line in the file.
+- `500` and `503` messages end with a reference, the response's `X-Request-ID`, which can be found in the logs.
+
+## A workout
+
 ```json
-{ "errors": [ { "row": 2, "field": "distance_km", "error": "The key distance_km is missing." } ] }
+{ "id": 1, "sport": "run", "distance_km": 5.0, "duration_min": 30, "performed_on": "2026-11-22" }
 ```
-The row number moves out of the message into `row`, so the frontend can highlight the row without parsing text.
+
+| Field | Rule |
+|---|---|
+| `sport` | swim, run, badminton, cycle, strength or rest |
+| `distance_km` | a number ≥ 0; required for run, swim and cycle, otherwise may be `null` |
+| `duration_min` | a whole number ≥ 0; required for every sport except rest |
+| `performed_on` | a date; set by imports, otherwise today |
+
+The frontend checks every response against this shape at runtime (`workout-types.ts`). Real examples of every response are in [`contracts/`](../contracts).

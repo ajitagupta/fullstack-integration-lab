@@ -1,14 +1,13 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, g
 import db
 import os
 import cache
 from flask_cors import CORS
 from datetime import date
 import importers
-from importers import parse_line, text_rows
+from importers import text_rows
 import observability
 from observability import logger
-from flask import g
 from werkzeug.exceptions import HTTPException
 from sqlalchemy.exc import OperationalError
 
@@ -245,7 +244,7 @@ def to_date(value):
     if not value:
         return None                       # empty → no date
     try:
-        return date.fromisoformat(value)                       # turn "2026-11-02" into a date object (hint: date.fromisoformat)
+        return date.fromisoformat(value)                       # turn "2026-11-02" into a date object
     except ValueError:
         return value                     # keep the text; validate_data() reports it
 

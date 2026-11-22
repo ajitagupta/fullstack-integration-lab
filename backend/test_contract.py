@@ -47,7 +47,6 @@ def test_put_updates_workout(client):
     assert saved.get_json()["duration_min"] == 45
 
 def test_put_unknown_id_returns_404(client):
-    # TODO: PUT /workouts/99999 with valid data → assert 404
     response = client.put("/workouts/99999", json={"sport": "run", "distance_km": 5.0, "duration_min": 33})
     assert response.status_code == 404
 

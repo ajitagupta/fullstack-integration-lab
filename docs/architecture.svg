@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 870" width="1200" height="870">
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="context-stroke"/></marker></defs>
+<rect width="1200" height="870" fill="#fcfbf7"/>
+<text x="600" y="58" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="36" font-weight="900" fill="#111">Workout Tracker · Architecture</text>
+<text x="600" y="88" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="17" fill="#555">Where a request goes, and how a change reaches production</text>
+<rect x="34" y="125" width="300" height="440" rx="16" fill="#0f766e1a"/>
+<rect x="30" y="120" width="300" height="440" rx="16" fill="#e6f4f1" stroke="#0f766e" stroke-width="2.2"/>
+<text x="180.0" y="152" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="22" font-weight="700" fill="#0b3d38">Browser</text>
+<line x1="154.0" y1="164" x2="206.0" y2="164" stroke="#e8735a" stroke-width="3" stroke-linecap="round"/>
+<text x="180.0" y="188" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="14.5" font-weight="normal" fill="#2b2f36">React · TypeScript · Bootstrap</text>
+<text x="180.0" y="208" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" font-weight="normal" fill="#6b7280">Vercel · Vite :5173 locally</text>
+<rect x="48" y="228" width="264" height="82" rx="10" fill="#fff" stroke="#9cc9c2" stroke-width="1.5"/>
+<text x="180.0" y="250" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="14.5" font-weight="700" fill="#0b3d38">Pages</text>
+<text x="180.0" y="270" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" font-weight="normal" fill="#2b2f36">Home · Workouts · Details · Edit</text>
+<text x="180.0" y="288" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" font-weight="normal" fill="#2b2f36">Add · Quick add · Import · Stats</text>
+<rect x="48" y="322" width="264" height="82" rx="10" fill="#fff" stroke="#9cc9c2" stroke-width="1.5"/>
+<text x="180.0" y="344" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="14.5" font-weight="700" fill="#0b3d38">API layer</text>
+<text x="180.0" y="364" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" font-weight="normal" fill="#2b2f36">client.ts: 10 s timeout, cancellation,</text>
+<text x="180.0" y="382" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" font-weight="normal" fill="#2b2f36">one error type for every failure</text>
+<rect x="48" y="416" width="264" height="64" rx="10" fill="#fff" stroke="#9cc9c2" stroke-width="1.5"/>
+<text x="180.0" y="438" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="14.5" font-weight="700" fill="#0b3d38">Runtime parsers</text>
+<text x="180.0" y="458" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" font-weight="normal" fill="#2b2f36">every response checked before use</text>
+<rect x="48" y="492" width="264" height="52" rx="10" fill="#fff" stroke="#9cc9c2" stroke-width="1.5"/>
+<text x="180.0" y="514" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="14.5" font-weight="700" fill="#0b3d38">Connection badge</text>
+<text x="180.0" y="534" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" font-weight="normal" fill="#2b2f36">asks /ready every 10 s</text>
+<rect x="424" y="125" width="420" height="440" rx="16" fill="#0f766e1a"/>
+<rect x="420" y="120" width="420" height="440" rx="16" fill="#e6f4f1" stroke="#0f766e" stroke-width="2.2"/>
+<text x="630.0" y="152" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="22" font-weight="700" fill="#0b3d38">Flask API</text>
+<line x1="604.0" y1="164" x2="656.0" y2="164" stroke="#e8735a" stroke-width="3" stroke-linecap="round"/>
+<text x="630.0" y="188" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="14.5" font-weight="normal" fill="#2b2f36">Python · Gunicorn, 1 worker, 4 threads</text>
+<text x="630.0" y="208" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" font-weight="normal" fill="#6b7280">Render (Docker) · :5000 locally</text>
+<rect x="438" y="228" width="384" height="82" rx="10" fill="#fff" stroke="#9cc9c2" stroke-width="1.5"/>
+<text x="630.0" y="250" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="14.5" font-weight="700" fill="#0b3d38">Routes</text>
+<text x="630.0" y="270" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" font-weight="normal" fill="#2b2f36">/workouts: list, filters, pages, CRUD</text>
+<text x="630.0" y="288" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" font-weight="normal" fill="#2b2f36">/stats/weekly · /health · /ready</text>
+<rect x="438" y="322" width="384" height="82" rx="10" fill="#fff" stroke="#9cc9c2" stroke-width="1.5"/>
+<text x="630.0" y="344" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="14.5" font-weight="700" fill="#0b3d38">Import pipeline</text>
+<text x="630.0" y="364" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" font-weight="normal" fill="#2b2f36">CSV · GPX · FIT · Strava · typed text → one check</text>
+<text x="630.0" y="382" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" font-weight="normal" fill="#2b2f36">→ preview, or save all rows or none</text>
+<rect x="438" y="416" width="384" height="64" rx="10" fill="#fff" stroke="#9cc9c2" stroke-width="1.5"/>
+<text x="630.0" y="438" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="14.5" font-weight="700" fill="#0b3d38">Observability</text>
+<text x="630.0" y="458" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" font-weight="normal" fill="#2b2f36">X-Request-ID · JSON logs · 500 / 503 with a reference</text>
+<rect x="438" y="492" width="186.0" height="52" rx="10" fill="#fff" stroke="#9cc9c2" stroke-width="1.5"/>
+<text x="531.0" y="514" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="14.5" font-weight="700" fill="#0b3d38">cache.py</text>
+<text x="531.0" y="534" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" font-weight="normal" fill="#2b2f36">list results, in memory</text>
+<rect x="636.0" y="492" width="186.0" height="52" rx="10" fill="#fff" stroke="#9cc9c2" stroke-width="1.5"/>
+<text x="729.0" y="514" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="14.5" font-weight="700" fill="#0b3d38">db.py</text>
+<text x="729.0" y="534" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" font-weight="normal" fill="#2b2f36">SQLAlchemy 2.0 models</text>
+<path d="M930,258 V392 A120.0,18 0 0 0 1170,392 V258" fill="#e6f4f1" stroke="#0f766e" stroke-width="2.2"/>
+<ellipse cx="1050.0" cy="258" rx="120.0" ry="18" fill="#d3eee8" stroke="#0f766e" stroke-width="2.2"/>
+<text x="1050.0" y="314" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="21" font-weight="700" fill="#0b3d38">PostgreSQL 18</text>
+<line x1="1024.0" y1="326" x2="1076.0" y2="326" stroke="#e8735a" stroke-width="3" stroke-linecap="round"/>
+<text x="1050.0" y="350" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="14.5" font-weight="normal" fill="#2b2f36">Neon</text>
+<text x="1050.0" y="370" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" font-weight="normal" fill="#6b7280">Docker :5433 locally</text>
+<rect x="930" y="450" width="240" height="64" rx="10" fill="#fff" stroke="#9cc9c2" stroke-width="1.5"/>
+<text x="1050.0" y="472" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="14.5" font-weight="700" fill="#0b3d38">Alembic migrations</text>
+<text x="1050.0" y="492" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" font-weight="normal" fill="#2b2f36">versioned schema; run by hand</text>
+<text x="1050.0" y="510" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" font-weight="normal" fill="#2b2f36">against Neon before a deploy</text>
+<line x1="1050.0" y1="448" x2="1050.0" y2="414" stroke="#0f766e" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#a)"/>
+<line x1="336" y1="350" x2="412" y2="350" stroke="#0f766e" stroke-width="2.5" marker-start="url(#a)" marker-end="url(#a)"/>
+<text x="375.0" y="316" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="13.5" font-weight="700" fill="#0b3d38">HTTPS</text>
+<text x="375.0" y="333" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="13.5" font-weight="700" fill="#0b3d38">JSON</text>
+<text x="375.0" y="374" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#6b7280">X-Request-ID</text>
+<text x="375.0" y="390" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#6b7280">CORS</text>
+<line x1="846" y1="335" x2="922" y2="335" stroke="#0f766e" stroke-width="2.5" marker-start="url(#a)" marker-end="url(#a)"/>
+<text x="885.0" y="323" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="13.5" font-weight="700" fill="#0b3d38">SQL</text>
+<text x="885.0" y="359" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" font-weight="normal" fill="#6b7280">pool_pre_ping</text>
+<rect x="22" y="610" width="1156" height="238" rx="18" fill="#f4f1e8" stroke="#ddd6c4" stroke-width="1.5"/>
+<rect x="22" y="610" width="8" height="238" rx="4" fill="#e8735a"/>
+<text x="1160" y="640" text-anchor="end" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="14" font-weight="700" letter-spacing="2" fill="#e8735a">EVERY PUSH · GITHUB ACTIONS</text>
+<rect x="56" y="661" width="330" height="72" rx="14" fill="#0f766e22"/>
+<rect x="52" y="656" width="330" height="72" rx="14" fill="#d3eee8" stroke="#0f766e" stroke-width="2.2"/>
+<text x="217.0" y="682" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="17" font-weight="700" fill="#0b3d38">backend</text>
+<text x="217.0" y="704" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="13" font-weight="normal" fill="#2b2f36">migrations · 62 pytest tests · fresh PostgreSQL</text>
+<rect x="56" y="747" width="330" height="72" rx="14" fill="#0f766e22"/>
+<rect x="52" y="742" width="330" height="72" rx="14" fill="#d3eee8" stroke="#0f766e" stroke-width="2.2"/>
+<text x="217.0" y="768" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="17" font-weight="700" fill="#0b3d38">frontend</text>
+<text x="217.0" y="790" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="13" font-weight="normal" fill="#2b2f36">audit · lint · 32 Vitest tests · type check and build</text>
+<rect x="464" y="684.0" width="290" height="112" rx="14" fill="#0f766e22"/>
+<rect x="460" y="679.0" width="290" height="112" rx="14" fill="#d3eee8" stroke="#0f766e" stroke-width="2.2"/>
+<text x="605.0" y="705.0" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="17" font-weight="700" fill="#0b3d38">e2e</text>
+<text x="605.0" y="727.0" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="13" font-weight="normal" fill="#2b2f36">db and api from Docker Compose</text>
+<text x="605.0" y="745.0" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="13" font-weight="normal" fill="#2b2f36">5 Playwright journeys in Chromium</text>
+<rect x="834" y="684.0" width="330" height="112" rx="14" fill="#0f766e22"/>
+<rect x="830" y="679.0" width="330" height="112" rx="14" fill="#d3eee8" stroke="#0f766e" stroke-width="2.2"/>
+<text x="995.0" y="705.0" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="17" font-weight="700" fill="#0b3d38">deploy</text>
+<text x="995.0" y="727.0" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="13" font-weight="normal" fill="#2b2f36">Render deploy hook</text>
+<text x="995.0" y="745.0" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="13" font-weight="normal" fill="#2b2f36">→ wait until /health reports the commit</text>
+<text x="995.0" y="763.0" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="13" font-weight="normal" fill="#2b2f36">→ Vercel deploy hook</text>
+<line x1="390" y1="692.0" x2="448" y2="735.0" stroke="#0f766e" stroke-width="2.5" marker-end="url(#a)"/>
+<line x1="390" y1="778.0" x2="448" y2="735.0" stroke="#0f766e" stroke-width="2.5" marker-end="url(#a)"/>
+<line x1="758" y1="735.0" x2="818" y2="735.0" stroke="#0f766e" stroke-width="2.5" marker-end="url(#a)"/>
+<text x="600" y="834" text-anchor="middle" font-family="'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" font-weight="normal" fill="#6b7280">backend and frontend run in parallel; each later job waits for the ones before it. A red job stops the deploy; pull requests never deploy.</text>
+</svg>

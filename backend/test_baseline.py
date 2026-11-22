@@ -2,9 +2,9 @@ import pytest
 from app import app
 import cache
 import io
-from app import parse_line
 import db
 from sqlalchemy.exc import IntegrityError
+from importers import parse_line
 
 @pytest.fixture
 def client():

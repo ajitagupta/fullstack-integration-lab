@@ -33,6 +33,9 @@ def test_write_example_responses(client):
     save("workout-list.json", workouts)
 
     stats = client.get("/stats/weekly?weeks=52").get_json()
+    for row in stats["stats"]:
+        row["week_start"] = "2026-01-05"
+    save("weekly-stats.json", stats)
 
     csv_file = b"sport,distance_km,duration_min\nswim,1.5,40\nrun,,30\n"
     preview = client.post("/workouts/upload/preview",
