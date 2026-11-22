@@ -300,7 +300,8 @@ def test_crash_returns_500_with_reference(client, monkeypatch):
 def test_health_is_ok(client):
     response = client.get("/health")
     assert response.status_code == 200
-    assert response.get_json() == {"status": "ok"}
+    assert response.get_json()["status"] == "ok"
+    assert "version" in response.get_json()
 
 def test_ready_when_database_is_reachable(client):
     response = client.get("/ready")

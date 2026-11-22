@@ -69,7 +69,7 @@ if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
 
 @app.get("/health")
 def health():
-    return jsonify({"status": "ok"})
+    return jsonify({"status": "ok", "version": os.environ.get("RENDER_GIT_COMMIT", "local")})
 
 
 @app.get("/ready")
