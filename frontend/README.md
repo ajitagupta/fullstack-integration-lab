@@ -72,10 +72,13 @@ npm run dev
 | `npm run dev` | Development server on port 5173 |
 | `npm run build` | Type check (`tsc -b`) and production build. Unused variables fail the build, as they do on Vercel |
 | `npm test` | Unit and component tests (Vitest + Testing Library); the API is faked with `vi.mock` |
-| `npm run test:e2e` | End-to-end tests in a real browser (Playwright); needs the app and the API running |
+| `npx vitest run --coverage` | The same tests once, with a coverage report for every file in `src/` |
+| `npm run test:e2e` | End-to-end journeys in a real browser (Playwright); needs the whole stack running (`docker compose up -d`) |
 | `npm run lint` | Linting (oxlint) |
 
-Test files use their own TypeScript settings (`tsconfig.test.json`) so Vitest's globals are known.
+Test files and the Playwright journeys in `tests/` use their own TypeScript settings (`tsconfig.test.json`), with Vitest's globals and the Node types.
+
+`src/api/contract.test.ts` reads the example responses in `../contracts/`, written by the backend's tests, and checks them with the same parsers the app uses. If the API changes a response and the frontend doesn't follow, this test fails.
 
 ## Deployment
 

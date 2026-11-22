@@ -44,7 +44,7 @@ Every feature crosses the same line: **browser → API → database**.
 - **Debugged in production:** a stale-connection bug found by tracing one request through all three services, and fixed (see [stage 3](#3-connect--go-live)).
 - **Validation on both sides:** instant feedback in the browser, with the server as the authority.
 - **Untrusted input handled in one pipeline:** CSV, GPX and FIT files and typed text all become the same rows, with one preview, one validation and one duplicate check.
-- **Tested at every layer:** pytest against a real test database, Vitest, Playwright end to end.
+- **Tested at every layer:** pytest against a real test database, Vitest, a contract of real API responses checked by both sides, Playwright end to end.
 
 **Stack:** React · TypeScript · Vite · Bootstrap · Flask · SQLAlchemy 2.0 · Alembic · PostgreSQL · Docker · Vercel · Render · Neon · pytest · Vitest · Playwright
 
@@ -85,16 +85,17 @@ Every feature crosses the same line: **browser → API → database**.
 
 📄 [03-browser-api-boundary](docs/03-browser-api-boundary.md) · [04-first-vertical-slice](docs/04-first-vertical-slice.md)
 
-### 4. Run reliably *(in progress: milestone 09 done, 10 and 11 next)*
+### 4. Run reliably *(in progress: milestones 09 and 10 done, 11 next)*
 **Why it matters:** in production, nobody sees the screen when something goes wrong. The logs have to point to the one request that failed.
 **Key question:** *A user reports an error. How do you find their request in the logs?* By the reference they see: every response carries an `X-Request-ID`, every log line contains it, and every error message shows it.
 
 - Structured JSON logs with request IDs; `500` for bugs (with a stack trace in the log), `503` for an unavailable database (with a one-line cause)
 - `/health` and `/ready`, and a connection badge with three states
 - Failure drills (database down, a planted bug, a slow API) and a real incident written up: deploys that had silently stopped
-- _Next: tests of the integrated system (10), CI/CD and rollback (11)_
+- Tests of the integrated system: honest coverage reports (backend 91%), tests for the API client, a **contract** of real API responses in `contracts/` that the frontend's parsers check, and 5 Playwright journeys against the running stack
+- _Next: CI/CD and rollback (11)_
 
-📄 [09-diagnose-failures](docs/09-diagnose-failures.md)
+📄 [09-diagnose-failures](docs/09-diagnose-failures.md) · [10-test-the-system](docs/10-test-the-system.md)
 
 ---
 

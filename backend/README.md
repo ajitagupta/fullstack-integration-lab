@@ -87,9 +87,12 @@ flask --app app run
 
 From `backend/` with the venv active and `TEST_DATABASE_URL` set in `.env`:
 ```powershell
-pytest
+pytest            # all tests
+pytest --cov      # with a coverage report (settings in .coveragerc)
 ```
-The tests run against the test database only; the development data is never touched. Setting up both databases is described in [`docs/01-postgresql.md`](../docs/01-postgresql.md).
+The tests run against the test database only; the development data is never touched.
+
+`test_contract_examples.py` writes real responses of the API to `contracts/` in the repo root, where the frontend's contract test reads them. When a response changes, commit the changed files with the code. Setting up both databases is described in [`docs/01-postgresql.md`](../docs/01-postgresql.md).
 
 ## Migrations
 
