@@ -23,7 +23,7 @@ A React + TypeScript frontend and a Flask API on PostgreSQL, built in three part
 
 Every feature crosses the same line: **browser → API → database**.
 
-**Status:** stages 1–3 and 5–11 are done. Stage 4 (*Run reliably*: logs, end-to-end tests, CI/CD) is in progress; stage 12 (*Live sync*) is optional.
+**Status:** stages 1–11 are done. Stage 12 (*Live sync*) is optional.
 
 ---
 
@@ -44,9 +44,10 @@ Every feature crosses the same line: **browser → API → database**.
 - **Debugged in production:** a stale-connection bug found by tracing one request through all three services, and fixed (see [stage 3](#3-connect--go-live)).
 - **Validation on both sides:** instant feedback in the browser, with the server as the authority.
 - **Untrusted input handled in one pipeline:** CSV, GPX and FIT files and typed text all become the same rows, with one preview, one validation and one duplicate check.
-- **Tested at every layer:** pytest against a real test database, Vitest, a contract of real API responses checked by both sides, Playwright end to end.
+- **Tested at every layer:** pytest against a real test database, Vitest, a contract of real API responses checked by both sides, Playwright end to end, and all of it runs in CI on every push.
+- **Deployed only when green:** GitHub Actions deploys the API first and the frontend only once the API reports the new commit.
 
-**Stack:** React · TypeScript · Vite · Bootstrap · Flask · SQLAlchemy 2.0 · Alembic · PostgreSQL · Docker · Vercel · Render · Neon · pytest · Vitest · Playwright
+**Stack:** React · TypeScript · Vite · Bootstrap · Flask · SQLAlchemy 2.0 · Alembic · PostgreSQL · Docker · Vercel · Render · Neon · pytest · Vitest · Playwright · GitHub Actions
 
 ---
 
@@ -85,7 +86,7 @@ Every feature crosses the same line: **browser → API → database**.
 
 📄 [03-browser-api-boundary](docs/03-browser-api-boundary.md) · [04-first-vertical-slice](docs/04-first-vertical-slice.md)
 
-### 4. Run reliably *(in progress: milestones 09 and 10 done, 11 next)*
+### 4. Run reliably
 **Why it matters:** in production, nobody sees the screen when something goes wrong. The logs have to point to the one request that failed.
 **Key question:** *A user reports an error. How do you find their request in the logs?* By the reference they see: every response carries an `X-Request-ID`, every log line contains it, and every error message shows it.
 
@@ -93,9 +94,9 @@ Every feature crosses the same line: **browser → API → database**.
 - `/health` and `/ready`, and a connection badge with three states
 - Failure drills (database down, a planted bug, a slow API) and a real incident written up: deploys that had silently stopped
 - Tests of the integrated system: honest coverage reports (backend 91%), tests for the API client, a **contract** of real API responses in `contracts/` that the frontend's parsers check, and 5 Playwright journeys against the running stack
-- _Next: CI/CD and rollback (11)_
+- A CI/CD pipeline in GitHub Actions: backend and frontend tests, the contract check and the browser journeys on every push; deploys only when all are green, backend before frontend; a drill showing a broken commit stopped before production, and a rollback recipe
 
-📄 [09-diagnose-failures](docs/09-diagnose-failures.md) · [10-test-the-system](docs/10-test-the-system.md)
+📄 [09-diagnose-failures](docs/09-diagnose-failures.md) · [10-test-the-system](docs/10-test-the-system.md) · [11-ci-cd](docs/11-ci-cd.md)
 
 ---
 
@@ -235,6 +236,8 @@ Open http://localhost:5173. More commands (migrations, seed data, tests, reset) 
 | Preview before every import, all or nothing | One bad row must not leave half a file saved | [07](docs/07-csv-import.md) |
 | One converter per input format | A new format is one function; the shared pipeline stays untouched | [14](docs/14-activity-files.md) |
 | Bootstrap classes, no component library | Restyling changed only markup; logic and tests stayed as they were | [16](docs/16-look-good.md) |
+| Contract files generated from the real API | Both sides check the same responses, and they can't drift from the code | [10](docs/10-test-the-system.md) |
+| Deploy from CI, backend first | Nothing untested reaches users, and a new frontend never talks to an old API | [11](docs/11-ci-cd.md) |
 | _more as the parts are built_ | | |
 
 ---

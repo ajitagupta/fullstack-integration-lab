@@ -83,3 +83,5 @@ Test files and the Playwright journeys in `tests/` use their own TypeScript sett
 ## Deployment
 
 Deployed on **Vercel** with `frontend` as the root folder and `VITE_API_URL` set to the Render address. `vercel.json` sends every path to `index.html`, so a reload on `/workouts/5` still works. The API must list the Vercel address in its `CORS_ORIGINS`.
+
+Production deploys come from CI, not from the push: `vercel.json` turns off Vercel's automatic deploys for `main`, and the `deploy` job in `.github/workflows/ci.yml` calls a Vercel deploy hook once all tests have passed and the new API is live. Other branches still get preview deploys. CI also runs `npm run lint`, `npx vitest run --coverage`, `npm run build`, the Playwright journeys and `npm audit --omit=dev --audit-level=high`.
