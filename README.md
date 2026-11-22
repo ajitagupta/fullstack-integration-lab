@@ -194,7 +194,7 @@ Every feature crosses the same line: **browser → API → database**.
 ## Architecture
 
 <!-- Architecture diagram (docs/architecture.drawio exported as SVG) -->
-![Architecture](docs/architecture.png)
+![Architecture](docs/architecture.svg)
 <!-- Request sequence: browser → Vercel → Cloudflare/Render → Neon -->
 
 | Layer | Local | Production |
