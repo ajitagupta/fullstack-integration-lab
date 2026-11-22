@@ -1,0 +1,13 @@
+{
+  "limit": 20,
+  "offset": 0,
+  "total": 1,
+  "workouts": [
+    {
+      "distance_km": 5.0,
+      "duration_min": 30,
+      "id": 1,
+      "sport": "run"
+    }
+  ]
+}

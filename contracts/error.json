@@ -1,0 +1,8 @@
+{
+  "errors": [
+    {
+      "error": "The key duration_min is missing.",
+      "field": "duration_min"
+    }
+  ]
+}

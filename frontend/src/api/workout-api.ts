@@ -64,7 +64,7 @@ export async function getWeeklyStats(weeks: number, signal?: AbortSignal): Promi
 
 export type ImportResult = { inserted: number; skipped: number };
 
-function toImportResult(data: unknown): ImportResult {
+export function toImportResult(data: unknown): ImportResult {
   const result = data as { inserted?: unknown; skipped?: unknown };
   if (typeof result?.inserted !== "number" || typeof result?.skipped !== "number") {
     throw new InvalidResponseError("inserted and skipped must be numbers.");

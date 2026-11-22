@@ -1,0 +1,28 @@
+{
+  "duplicates": 0,
+  "invalid": 1,
+  "rows": [
+    {
+      "distance_km": 1.5,
+      "duplicate": false,
+      "duration_min": 40.0,
+      "error": null,
+      "performed_on": null,
+      "row": 1,
+      "sport": "swim"
+    },
+    {
+      "distance_km": null,
+      "duplicate": false,
+      "duration_min": 30.0,
+      "error": {
+        "error": "The key distance_km is missing.",
+        "field": "distance_km"
+      },
+      "performed_on": null,
+      "row": 2,
+      "sport": "run"
+    }
+  ],
+  "valid": 1
+}
