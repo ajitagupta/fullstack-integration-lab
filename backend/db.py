@@ -20,7 +20,13 @@ SORT_COLUMNS = {
 }
 
 def to_dict(workout):
-    return {"id": workout.id, "sport": workout.sport, "distance_km": workout.distance_km, "duration_min": workout.duration_min}                      # id, sport, distance_km, duration_min from the object
+    return {
+        "id": workout.id,
+        "sport": workout.sport,
+        "distance_km": workout.distance_km,
+        "duration_min": workout.duration_min,
+        "performed_on": workout.performed_on.isoformat(),
+    }
 
 def add_workout(data):
     with SessionLocal() as session:

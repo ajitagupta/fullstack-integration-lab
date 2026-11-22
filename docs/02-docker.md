@@ -25,7 +25,7 @@ The frontend (Vite), the Flask API and PostgreSQL run as three containers, defin
 ## Files
 | File | Purpose |
 |---|---|
-| `backend/Dockerfile` | Builds the API image: Python 3.14-slim, dependencies, code, Flask on `0.0.0.0:5000` |
+| `backend/Dockerfile` | Builds the API image: Python 3.14-slim, dependencies, code, Gunicorn on `0.0.0.0:5000` (one worker, four threads) |
 | `backend/.dockerignore` | Keeps `.venv`, `.env`, `__pycache__`, `.pytest_cache` out of the image |
 | `docker-compose.yml` | Defines the `api`, `db` and `web` services, ports, the database health check and the `db-data` volume |
 | `.env` (repo root, not committed) | `POSTGRES_PASSWORD` for Compose |
@@ -66,7 +66,8 @@ Run from the repo root.
 - PostgreSQL sets the user's password **only on first initialisation** of an empty volume. Changing `POSTGRES_PASSWORD` later has no effect until the volume is removed (`down -v`).
 - Compose reads `.env` from the folder of `docker-compose.yml`; a missing variable becomes an empty string with only a warning.
 - `depends_on` waits for the database **container** to start, not for PostgreSQL to be **ready** (the API started ~40 log lines before the database was ready).
-- The APScheduler job does not run in the container: it starts only with Flask's debug reloader (`WERKZEUG_RUN_MAIN`). To be revisited in milestone 11.
+- The APScheduler job from the earlier Python lab never ran in the container: it started only with Flask's debug reloader (`WERKZEUG_RUN_MAIN`). It was removed after milestone 11, together with the dependency.
+- **Production server:** the container runs Gunicorn, not Flask's development server. One worker, because the list cache lives in the process: with several workers, a write would clear the cache in one of them only. Four threads let one slow request not block the others. `flask --app app run` stays the way to run the API locally without Docker.
 - **Health check:** `pg_isready` runs every 5 s; the API waits for `condition: service_healthy`, so it never starts before PostgreSQL accepts connections.
 - **Live reload on Windows:** file-change notifications from Windows folders don't reach Linux containers. Vite uses polling inside Docker only (`VITE_USE_POLLING=true` in Compose, read in `vite.config.ts`).
 - **Bind mount vs. image copy:** the bind mount overrides the code copied into the image, so edits appear without rebuilding; `node_modules` is excluded from the mount so the container keeps its Linux packages.

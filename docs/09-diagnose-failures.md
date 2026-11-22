@@ -47,7 +47,7 @@ All of it lives in `observability.py`; `app.py` only calls `observability.setup(
 - **Internals stay in the log.** The user sees a short message with a reference, never the stack trace or the exception text, which could reveal how the system works inside.
 - **HTTP errors keep their own handling.** The catch-all handler passes `HTTPException`s (404, 405, 413…) through unchanged; only real crashes become a `500`.
 - **Times in UTC.** Logs from services in different places line up; the Zurich time is one hour later in winter.
-- **Known duplicate:** Flask's development server writes its own access line next to the JSON line. It disappears with the production server in milestone 11.
+- **Known duplicate:** Flask's development server writes its own access line next to the JSON line. It disappeared when the container switched to Gunicorn after milestone 11.
 
 ### Verified
 

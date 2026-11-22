@@ -4,9 +4,7 @@ _cache = {}
 
 def get(key):
     if key in _cache:
-        print("HIT", key)
         return _cache[key]
-    print("MISS", key)
     return None
 
 def set(key, value):

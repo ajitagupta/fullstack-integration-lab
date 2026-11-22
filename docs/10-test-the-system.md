@@ -112,7 +112,7 @@ backend/test_contract_examples.py        frontend/src/api/contract.test.ts
 ## Known limits
 
 - Frontend line coverage stays around 31%, because the pages are mostly tested through Playwright, which the coverage report doesn't count.
-- The journeys need the stack running (`docker compose up -d`). Running them automatically is part of milestone 11.
+- The journeys need the stack running (`docker compose up -d`). Since milestone 11, CI starts the stack and runs them on every push ([11-ci-cd](11-ci-cd.md)).
 - Saving from Quick add and Import is not tested in the browser, only through the API.
 
 ## Summary

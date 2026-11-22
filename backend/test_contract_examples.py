@@ -24,12 +24,15 @@ def save(name, body):
 
 def test_write_example_responses(client):
     workout = client.post("/workouts", json={"sport": "run", "distance_km": 5.0, "duration_min": 30}).get_json()
+    workout["performed_on"] = "2026-01-05"            # today's date; fixed so the file only changes when the format does
     save("workout.json", workout)
-    save("workout-list.json", client.get("/workouts").get_json())
+
+    workouts = client.get("/workouts").get_json()
+    for w in workouts["workouts"]:
+        w["performed_on"] = "2026-01-05"
+    save("workout-list.json", workouts)
+
     stats = client.get("/stats/weekly?weeks=52").get_json()
-    for row in stats["stats"]:
-        row["week_start"] = "2026-01-05"   # depends on today; fixed so the file only changes when the format does
-    save("weekly-stats.json", stats)
 
     csv_file = b"sport,distance_km,duration_min\nswim,1.5,40\nrun,,30\n"
     preview = client.post("/workouts/upload/preview",

@@ -10,6 +10,7 @@ export type Workout = {
   sport: Sport;
   distance_km: number | null;                     // a number, or null for rest/badminton/strength
   duration_min: number | null;                    // a number, or null for rest
+  performed_on: string;                           // "2026-11-22"
 };
 
 // The response of GET /workouts
@@ -40,12 +41,14 @@ export function parseWorkout(value: unknown): Workout {
   if (typeof value.sport !== "string" || !SPORTS.includes(value.sport as Sport)) throw new InvalidResponseError("Workout sport is not an allowed sport.");
   if (value.distance_km !== null && typeof value.distance_km !== "number") throw new InvalidResponseError("Workout distance_km must be a number or null.");
   if (value.duration_min !== null && typeof value.duration_min !== "number") throw new InvalidResponseError("Workout duration_min must be a number or null.");
+  if (typeof value.performed_on !== "string") throw new InvalidResponseError("Workout performed_on must be a date string.");
 
   return {
     id: value.id,
     sport: value.sport as Sport,
     distance_km: value.distance_km as number | null,
     duration_min: value.duration_min as number | null,
+    performed_on: value.performed_on,
   };
 }
 

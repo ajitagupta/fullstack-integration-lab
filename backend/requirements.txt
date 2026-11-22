@@ -1,5 +1,4 @@
 Flask==3.1.3
-APScheduler==3.11.3
 pytest==9.1.1
 sqlalchemy>=2
 psycopg[binary]
@@ -9,3 +8,4 @@ flask-cors
 defusedxml
 fitdecode
 pytest-cov
+gunicorn

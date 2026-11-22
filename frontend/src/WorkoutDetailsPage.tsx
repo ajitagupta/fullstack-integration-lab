@@ -5,6 +5,7 @@ import type { Workout } from './api/workout-types';
 import { errorMessage } from './api/error-message';
 import { ApiError, RequestCancelledError } from './api/api-error';
 import { SPORT_COLORS, SPORT_ICONS } from './sports';
+import { formatDate } from './format-date';
 
 function WorkoutDetailPage() {
   const { id } = useParams();
@@ -69,7 +70,7 @@ function WorkoutDetailPage() {
                 </span>
                 <div>
                   <h1 className="page-title h3 mb-0 text-capitalize">{workout.sport}</h1>
-                  <span className="text-muted small">Workout #{id}</span>
+                  <span className="text-muted small">Workout #{id} · {formatDate(workout.performed_on)}</span>
                 </div>
               </div>
 

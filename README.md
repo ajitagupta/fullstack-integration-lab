@@ -237,14 +237,17 @@ Open http://localhost:5173. More commands (migrations, seed data, tests, reset) 
 | One converter per input format | A new format is one function; the shared pipeline stays untouched | [14](docs/14-activity-files.md) |
 | Bootstrap classes, no component library | Restyling changed only markup; logic and tests stayed as they were | [16](docs/16-look-good.md) |
 | Contract files generated from the real API | Both sides check the same responses, and they can't drift from the code | [10](docs/10-test-the-system.md) |
+| Gunicorn with one worker | The list cache lives in the process; with several workers, a cache cleared in one would leave stale lists in the others | [02](docs/02-docker.md) |
 | Deploy from CI, backend first | Nothing untested reaches users, and a new frontend never talks to an old API | [11](docs/11-ci-cd.md) |
-| _more as the parts are built_ | | |
 
 ---
 
 ## What I'd do next
 
-_(at the end)_
+- **Migrations as a pipeline step** before the backend deploy, instead of running them by hand against Neon.
+- **Dependabot alerts** for the Python and npm packages, in addition to the audit of shipped npm packages in CI.
+- **A data-fetching library** such as TanStack Query instead of loading data in effects, which would also clear the remaining lint warnings.
+- **Live sync with Strava** (stage 12): OAuth and webhooks, so new activities arrive without an export.
 
 ---
 

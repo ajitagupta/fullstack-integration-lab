@@ -107,7 +107,7 @@ Schema changes go through Alembic, never by hand:
 
 ## Deployment
 
-The API runs on **Render** as a Docker service; the database is on **Neon**. Render needs `DATABASE_URL`, `CORS_ORIGINS` and `PORT=5000`.
+The API runs on **Render** as a Docker service; the database is on **Neon**. Render needs `DATABASE_URL`, `CORS_ORIGINS` and `PORT=5000`. The container serves the API with Gunicorn (one worker, four threads; see [`docs/02-docker.md`](../docs/02-docker.md)).
 
 Render's automatic deploy is **off**. The `deploy` job in `.github/workflows/ci.yml` starts a deploy through Render's deploy hook once all tests have passed, then waits until `/health` reports the new commit (`"version"`, from `RENDER_GIT_COMMIT`; `"local"` outside Render). Details are in [`docs/11-ci-cd.md`](../docs/11-ci-cd.md).
 

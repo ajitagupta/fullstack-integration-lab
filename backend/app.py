@@ -1,7 +1,6 @@
 from flask import Flask, request, jsonify
 import db
 import os
-from apscheduler.schedulers.background import BackgroundScheduler
 import cache
 from flask_cors import CORS
 from datetime import date
@@ -53,19 +52,6 @@ def database_unavailable(e):
         "error": short_error(e),                # one line, not a stack trace
     }})
     return error_response([{"error": f"The database is unavailable right now. Try again in a moment. Reference: {g.get('request_id')}"}], 503)
-
-def scheduled_job():
-    count = db.count_workouts(None, None, None)
-    workouts = db.search_workouts(None, None, None, 1000000, 0)
-    distance = sum(w["distance_km"] for w in workouts if w["distance_km"] is not None)
-
-    print(f"[Scheduler] {count} workouts logged, {distance} km total")
-
-if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
-
-    scheduler = BackgroundScheduler()
-    scheduler.add_job(scheduled_job, "interval", seconds=10)
-    scheduler.start()
 
 @app.get("/health")
 def health():

@@ -39,7 +39,7 @@ describe("WorkoutForm", () => {
   });
 
   it("resets the form after a successful save", async () => {
-    vi.mocked(createWorkout).mockResolvedValue({ id: 99, sport: "run", distance_km: 5, duration_min: 30 });
+    vi.mocked(createWorkout).mockResolvedValue({ id: 99, sport: "run", distance_km: 5, duration_min: 30, performed_on: '2026-11-22' });
     const user = userEvent.setup();
     renderForm();
 
@@ -53,7 +53,7 @@ describe("WorkoutForm", () => {
 });
 
 it("edits an existing workout with PUT", async () => {
-  vi.mocked(updateWorkout).mockResolvedValue({ id: 7, sport: "run", distance_km: 5, duration_min: 45 });
+  vi.mocked(updateWorkout).mockResolvedValue({ id: 7, sport: "run", distance_km: 5, duration_min: 45, performed_on: '2026-11-22' });
   const user = userEvent.setup();
   render(
     <MemoryRouter>

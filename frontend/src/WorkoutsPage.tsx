@@ -6,7 +6,7 @@ import { errorMessage } from './api/error-message';
 import { RequestCancelledError } from './api/api-error';
 import { PAGE_SIZE } from './api/workout-api';
 import { SPORT_COLORS, SPORT_ICONS } from './sports';
-
+import { formatDate } from './format-date';
 
 function WorkoutsPage() {
   const [workouts, setWorkouts] = useState<Workout[]>([]);
@@ -137,7 +137,8 @@ function WorkoutsPage() {
                 {SPORT_ICONS[workout.sport]}
               </span>
               <span className="flex-grow-1">
-                <span className="fw-semibold text-capitalize">{workout.sport}</span>
+                <span className="d-block fw-semibold text-capitalize">{workout.sport}</span>
+                <span className="d-block text-muted small">{formatDate(workout.performed_on)}</span>
               </span>
               <span className="text-muted text-end small">
                 {workout.distance_km !== null && <span className="me-3">{workout.distance_km} km</span>}
