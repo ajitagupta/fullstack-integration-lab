@@ -14,7 +14,8 @@ This is a learning project. It connects the backend from my Python lab and the f
 
 ![Workout Tracker, built in three parts](./milestone-map.svg)
 
-Stages 1-11 are done. Stage 12 (live sync with Strava) is not built.
+Stages 1-11 are done. Stage 12 (live sync with Strava, milestone 15) is not built.
+Milestone 12 has no stage on the map: it was the final review and documentation, covering the whole project.
 
 ## Features
 
