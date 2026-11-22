@@ -72,6 +72,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: No known vulnerabilities in shipped packages
+        run: npm audit --omit=dev --audit-level=high
+
       - name: Lint                       # remove this step if there's no "lint" script
         run: npm run lint
 
@@ -109,9 +112,6 @@ jobs:
       - name: Install dependencies
         working-directory: frontend
         run: npm ci
-
-      - name: No known vulnerabilities in shipped packages
-        run: npm audit --omit=dev --audit-level=high
 
       - name: Install the browser
         working-directory: frontend
